@@ -34,7 +34,7 @@ export class TestEntity extends Entity {
     return TestEntity._reconstruct(text1, text2, text3, text4);
   }
 
-  public update({ text3, text4 }: { text3?: Text, text4?: Text }) {
+  public update({ text3, text4 }: { text3?: Text; text4?: Text }) {
     return TestEntity._update(this, this.text1, this.text2, text3, text4);
   }
 

@@ -2,13 +2,13 @@ import Text from '../valueObject/text';
 import { TestText, TestEntity } from './index.spec';
 import Collection from './collection';
 
-class TestCollectionBase extends Collection<TestEntity> {
+class TestCollection extends Collection<TestEntity> {
 }
 
 class TestBaseWithCollection extends TestEntity {
-  private tests!: TestCollectionBase;
+  private tests!: TestCollection;
 
-  public static createWithCollection(text1: Text, text2: Text, tests: TestCollectionBase): TestEntity {
+  public static createWithCollection(text1: Text, text2: Text, tests: TestCollection): TestEntity {
     const instance = TestEntity.reconstruct(text1, text2) as TestBaseWithCollection;
     instance.tests = tests;
 
@@ -17,16 +17,29 @@ class TestBaseWithCollection extends TestEntity {
 }
 
 describe('Entity CollectionBase', () => {
+  it('should throw error if call constructor directory', () => {
+    expect(() => new TestCollection([])).toThrow();
+  });
+
+  describe('isEmpty', () => {
+    it('should return true if empty', () => {
+      expect(TestCollection.create([]).isEmpty()).toBe(true);
+    });
+    it('should return false if not empty', () => {
+      expect(TestCollection.create([TestEntity.create(TestText.create(1), TestText.create('1'))]).isEmpty()).toBe(false);
+    });
+  });
+
   describe('validate', () => {
     it('should not throw error', () => {
-      expect(TestCollectionBase.create([
+      expect(TestCollection.create([
         TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
         TestEntity.reconstruct(TestText.create(2), TestText.create('2')),
       ]).validate()).toBeUndefined();
     });
 
     it('should return validation errors', () => {
-      const errors = TestCollectionBase.create([
+      const errors = TestCollection.create([
         TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
         TestEntity.reconstruct(TestText.create(2), TestText.create('')),
         TestEntity.reconstruct(TestText.create(''), TestText.create('')),
@@ -41,14 +54,10 @@ describe('Entity CollectionBase', () => {
     });
   });
 
-  it('should throw error if call constructor directory', () => {
-    expect(() => new TestCollectionBase([])).toThrow();
-  });
-
   describe('iterator', () => {
     it('should be iterable', () => {
       const items: string[][] = [];
-      for (const item of TestCollectionBase.create([
+      for (const item of TestCollection.create([
         TestEntity.reconstruct(TestText.create(1), TestText.create('2')),
         TestEntity.reconstruct(TestText.create(3), TestText.create('4')),
       ])) {
@@ -61,15 +70,6 @@ describe('Entity CollectionBase', () => {
       ]);
     });
   });
-
-  describe('isEmpty', () => {
-    it('should return true if empty', () => {
-      expect(TestCollectionBase.create([]).isEmpty()).toBe(true);
-    });
-    it('should return false if not empty', () => {
-      expect(TestCollectionBase.create([TestEntity.create(TestText.create(1), TestText.create('1'))]).isEmpty()).toBe(false);
-    });
-  });
 });
 
 describe('Entity with collection', () => {
@@ -78,7 +78,7 @@ describe('Entity with collection', () => {
       expect(TestBaseWithCollection.createWithCollection(
         TestText.create(1),
         TestText.create('1'),
-        TestCollectionBase.create([]),
+        TestCollection.create([]),
       ).getErrors()).toEqual({});
     });
 
@@ -86,7 +86,7 @@ describe('Entity with collection', () => {
       const errors = TestBaseWithCollection.createWithCollection(
         TestText.create(''),
         TestText.create(''),
-        TestCollectionBase.create([
+        TestCollection.create([
           TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
           TestEntity.reconstruct(TestText.create(2), TestText.create('')),
           TestEntity.reconstruct(TestText.create(''), TestText.create('')),
