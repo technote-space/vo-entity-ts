@@ -21,6 +21,14 @@ export default abstract class Collection<T extends Entity> {
     return this.collections.values();
   }
 
+  public find(filter: (item: T) => boolean): T | undefined {
+    return this.collections.find(filter);
+  }
+
+  public filter(filter: (item: T) => boolean): T[] {
+    return this.collections.filter(filter);
+  }
+
   public isEmpty(): boolean {
     return !this.collections.length;
   }

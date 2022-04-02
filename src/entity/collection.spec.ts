@@ -21,6 +21,40 @@ describe('Entity CollectionBase', () => {
     expect(() => new TestCollection([])).toThrow();
   });
 
+  describe('find', () => {
+    const collection = TestCollection.create([
+      TestEntity.create(TestText.create(1), TestText.create('2')),
+      TestEntity.create(TestText.create(3), TestText.create('4')),
+    ]);
+
+    it('should return found item', () => {
+      const item = collection.find(item => item.text1.value === '1');
+      expect(item).not.toBeUndefined();
+      expect(item?.text1.value).toBe('1');
+      expect(item?.text2.value).toBe('2');
+    });
+
+    it('should return undefined if not found', () => {
+      expect(collection.find(item => item.text1.value === '0')).toBeUndefined();
+    });
+  });
+
+  describe('filter', () => {
+    it('should return filtered collection', () => {
+      const collection = TestCollection.create([
+        TestEntity.create(TestText.create(1), TestText.create('2')),
+        TestEntity.create(TestText.create(3), TestText.create('4')),
+        TestEntity.create(TestText.create(5), TestText.create('6')),
+      ]).filter(item => item.text1.value === '1' || item.text2.value === '6');
+
+      expect(collection).toHaveLength(2);
+      expect(collection[0].text1.value).toBe('1');
+      expect(collection[0].text2.value).toBe('2');
+      expect(collection[1].text1.value).toBe('5');
+      expect(collection[1].text2.value).toBe('6');
+    });
+  });
+
   describe('isEmpty', () => {
     it('should return true if empty', () => {
       expect(TestCollection.create([]).isEmpty()).toBe(true);
