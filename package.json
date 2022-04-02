@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [
-    "github",
-    "github actions"
+    "ddd",
+    "value object",
+    "entity"
   ],
   "homepage": "https://github.com/technote-space/vo-entity-ts",
   "bugs": {

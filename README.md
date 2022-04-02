@@ -6,8 +6,6 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/technote-space/vo-entity-ts/badge)](https://www.codefactor.io/repository/github/technote-space/vo-entity-ts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/technote-space/vo-entity-ts/blob/master/LICENSE)
 
-
-
 ## Table of Contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -25,9 +23,9 @@
 
 ## Setup
 ### yarn
-- `yarn setup`
+- `yarn add @technote-space/vo-entity-ts`
 ### npm
-- `npm run setup`
+- `npm i @technote-space/vo-entity-ts`
 
 ## Author
 [GitHub (Technote)](https://github.com/technote-space)  
