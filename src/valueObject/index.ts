@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any */
-import InvalidUsage from '../exceptions/domain/invalidUsage';
+import InvalidUsage from '../exceptions/invalidUsage';
 
 export type ValidationError = {
   name: string;

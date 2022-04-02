@@ -1,6 +1,6 @@
-import type { ValidationErrors } from '../exceptions/domain/validation';
+import type { ValidationErrors } from '../exceptions/validation';
 import type Entity from '.';
-import InvalidUsage from '../exceptions/domain/invalidUsage';
+import InvalidUsage from '../exceptions/invalidUsage';
 
 export default abstract class Collection<T extends Entity> {
   private static _isCreating = false;
@@ -9,7 +9,7 @@ export default abstract class Collection<T extends Entity> {
   /**
    * @deprecated create 経由で生成
    */
-  public constructor(private readonly collections: Array<T>) {
+  public constructor(public readonly collections: T[]) {
     if (!Collection._isCreating) {
       throw new InvalidUsage('create経由で生成してください');
     }
@@ -19,6 +19,14 @@ export default abstract class Collection<T extends Entity> {
 
   [Symbol.iterator]() {
     return this.collections.values();
+  }
+
+  public find(filter: (item: T) => boolean): T | undefined {
+    return this.collections.find(filter);
+  }
+
+  public filter(filter: (item: T) => boolean): T[] {
+    return this.collections.filter(filter);
   }
 
   public isEmpty(): boolean {
