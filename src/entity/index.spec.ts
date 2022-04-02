@@ -1,4 +1,4 @@
-import type ValidationException from '../exceptions/domain/validation';
+import type ValidationException from '../exceptions/validation';
 import Text from '../valueObject/text';
 import Entity from '.';
 import { describe } from 'jest-circus';

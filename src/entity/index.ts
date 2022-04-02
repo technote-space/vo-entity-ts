@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ValidationErrors } from '../exceptions/domain/validation';
-import ValidationException from '../exceptions/domain/validation';
+import type { ValidationErrors } from '../exceptions/validation';
+import ValidationException from '../exceptions/validation';
 import ValueObject from '../valueObject';
 import type { ValidationError } from '../valueObject';
-import InvalidUsage from '../exceptions/domain/invalidUsage';
+import InvalidUsage from '../exceptions/invalidUsage';
 import Collection from './collection';
 
 export default abstract class Entity<Args extends any[] = any> {

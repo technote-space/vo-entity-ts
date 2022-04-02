@@ -1,5 +1,5 @@
 import type { ValidationError } from '.';
-import InvalidValueException from '../exceptions/domain/invalidValue';
+import InvalidValueException from '../exceptions/invalidValue';
 import ValueObject from '.';
 
 export default abstract class StringId extends ValueObject<number | string | null, string, string | null> {

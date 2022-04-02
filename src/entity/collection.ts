@@ -1,6 +1,6 @@
-import type { ValidationErrors } from '../exceptions/domain/validation';
+import type { ValidationErrors } from '../exceptions/validation';
 import type Entity from '.';
-import InvalidUsage from '../exceptions/domain/invalidUsage';
+import InvalidUsage from '../exceptions/invalidUsage';
 
 export default abstract class Collection<T extends Entity> {
   private static _isCreating = false;
