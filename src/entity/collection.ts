@@ -9,7 +9,7 @@ export default abstract class Collection<T extends Entity> {
   /**
    * @deprecated create 経由で生成
    */
-  public constructor(private readonly collections: Array<T>) {
+  public constructor(public readonly collections: T[]) {
     if (!Collection._isCreating) {
       throw new InvalidUsage('create経由で生成してください');
     }
