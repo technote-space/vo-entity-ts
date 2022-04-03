@@ -1,7 +1,7 @@
 import type ValidationException from '../exceptions/validation';
+import { describe } from 'jest-circus';
 import Text from '../valueObject/text';
 import Entity from '.';
-import { describe } from 'jest-circus';
 
 export class TestText extends Text {
   protected get symbol() {

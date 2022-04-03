@@ -1,8 +1,9 @@
+import type { ValidationError } from '../valueObject';
+import ValueObject  from '../valueObject';
 import Text from '../valueObject/text';
-import { TestText, TestEntity } from './index.spec';
 import Collection from './collection';
+import { TestText, TestEntity } from './index.spec';
 import Entity from '.';
-import ValueObject, { ValidationError } from '../valueObject';
 
 class TestCollection extends Collection<TestEntity> {
 }

@@ -5,7 +5,8 @@
     "plugin:@typescript-eslint/eslint-recommended"
   ],
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "import"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -104,6 +105,11 @@
     ],
     "semi": [
       "error"
-    ]
+    ],
+    "sort-imports": 0,
+    "import/order": [2, {
+      "groups": ["type", "builtin", "external", "internal", "parent", "sibling", "index", "object"],
+      "alphabetize": { "order": "asc", "caseInsensitive": true },
+    }]
   }
 }

@@ -1,5 +1,5 @@
-import type { ValidationErrors } from '../exceptions/validation';
 import type Entity from '.';
+import type { ValidationErrors } from '../exceptions/validation';
 import InvalidUsage from '../exceptions/invalidUsage';
 import ValidationException from '../exceptions/validation';
 
