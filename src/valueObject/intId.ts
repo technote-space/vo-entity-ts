@@ -1,7 +1,7 @@
 import type { ValidationError } from '.';
+import isInt from 'validator/lib/isInt';
 import InvalidValueException from '../exceptions/invalidValue';
 import ValueObject from '.';
-import isInt from 'validator/lib/isInt';
 
 export default abstract class IntId extends ValueObject<number | string | null, number, number | null> {
   protected fromInput(): number | null {
