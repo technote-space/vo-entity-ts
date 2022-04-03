@@ -1,6 +1,7 @@
 import type { ValidationErrors } from '../exceptions/validation';
 import type Entity from '.';
 import InvalidUsage from '../exceptions/invalidUsage';
+import ValidationException from '../exceptions/validation';
 
 export default abstract class Collection<T extends Entity> {
   private static _isCreating = false;
@@ -33,7 +34,7 @@ export default abstract class Collection<T extends Entity> {
     return !this.collections.length;
   }
 
-  public validate(prev?: Collection<T>): ValidationErrors | undefined {
+  public getErrors(prev?: Collection<T>): ValidationErrors | undefined {
     const getPrev = (item: T) => (prev?.collections ?? []).find(x => item.equals(x));
     const errors = this.collections.reduce((acc, item, index) => ({
       ...acc,
@@ -45,6 +46,13 @@ export default abstract class Collection<T extends Entity> {
     }
 
     return undefined;
+  }
+
+  public validate(prev?: Collection<T>): void | never {
+    const errors = this.getErrors(prev);
+    if (errors) {
+      throw new ValidationException(errors);
+    }
   }
 
   public static create<T extends Entity, Instance extends Collection<T>>(

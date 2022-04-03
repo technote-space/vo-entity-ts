@@ -7,8 +7,8 @@ export default abstract class Int extends Float {
     return Math.floor(super.fromInput());
   }
 
-  public validate(name: string): ValidationError[] | undefined {
-    const results = super.validate(name);
+  public getErrors(name: string): ValidationError[] | undefined {
+    const results = super.getErrors(name);
     if (results?.length) {
       return results;
     }

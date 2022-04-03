@@ -34,7 +34,7 @@ export default abstract class Float extends ValueObject<number | string, number>
     return false;
   }
 
-  public validate(name: string): ValidationError[] | undefined {
+  public getErrors(name: string): ValidationError[] | undefined {
     if (typeof this.input === 'string' && !isNumeric(this.input)) {
       return [{ name, error: '数値の形式が正しくありません' }];
     }

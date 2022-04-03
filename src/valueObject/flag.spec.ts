@@ -26,11 +26,11 @@ describe('Flags', () => {
     expect(flag2.equals(flag3)).toBe(true);
   });
 
-  it('should validate', () => {
-    expect(TestFlags.create('test1').validate('test')).toBeUndefined();
+  it('should get errors', () => {
+    expect(TestFlags.create('test1').getErrors('test')).toBeUndefined();
   });
 
   it('should throw error if not included flag', () => {
-    expect(TestFlags.create('test3').validate('test')).toEqual([{ name: 'test', error: '定義されていないフラグです: test3' }]);
+    expect(TestFlags.create('test3').getErrors('test')).toEqual([{ name: 'test', error: '定義されていないフラグです: test3' }]);
   });
 });

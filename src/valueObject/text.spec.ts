@@ -38,15 +38,15 @@ describe('Text', () => {
     expect(text2.equals(text3)).toBe(true);
   });
 
-  it('should validate', () => {
-    expect(TestText.create('123').validate('test')).toEqual([]);
-    expect(TestText.create('').validate('test')).toEqual([{ name: 'test', error: '値を指定してください' }]);
+  it('should get errors', () => {
+    expect(TestText.create('123').getErrors('test')).toEqual([]);
+    expect(TestText.create('').getErrors('test')).toEqual([{ name: 'test', error: '値を指定してください' }]);
   });
 });
 
 describe('Text with limit', () => {
-  it('should validate', () => {
-    expect(TestTextWithLimit.create('1234').validate('test')).toEqual([{ name: 'test', error: '5文字より長く入力してください' }]);
-    expect(TestTextWithLimit.create('12345678901').validate('test')).toEqual([{ name: 'test', error: '10文字より短く入力してください' }]);
+  it('should get errors', () => {
+    expect(TestTextWithLimit.create('1234').getErrors('test')).toEqual([{ name: 'test', error: '5文字より長く入力してください' }]);
+    expect(TestTextWithLimit.create('12345678901').getErrors('test')).toEqual([{ name: 'test', error: '10文字より短く入力してください' }]);
   });
 });

@@ -10,8 +10,8 @@ class Test extends ValueObject<number, number> {
     return 0;
   }
 
-  public validate(): ValidationError[] | undefined {
-    return undefined;
+  public getErrors(name: string): ValidationError[] | undefined {
+    return [{ name, error: 'test error' }];
   }
 
   public getInner() {
@@ -28,7 +28,7 @@ class TestArray extends ValueObject<number[], number[]> {
     return 0;
   }
 
-  public validate(): ValidationError[] | undefined {
+  public getErrors(): ValidationError[] | undefined {
     return undefined;
   }
 }
@@ -42,13 +42,13 @@ class TestObject extends ValueObject<{ test: number }, { test: number }> {
     return 0;
   }
 
-  public validate(): ValidationError[] | undefined {
+  public getErrors(): ValidationError[] | undefined {
     return undefined;
   }
 }
 
 describe('ValueObject', () => {
-  it('should cache', () => {
+  it('should be cached', () => {
     const test = Test.create(123);
     expect(test.value).toBe(123);
     expect(test.value).toBe(123);
@@ -82,5 +82,11 @@ describe('ValueObject', () => {
     expect(() => {
       test.value.test = 345;
     }).toThrow();
+  });
+
+  describe('validation', () => {
+    it('should throw error', () => {
+      expect(() => Test.create(1).validate('aaa')).toThrow();
+    });
   });
 });

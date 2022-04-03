@@ -19,7 +19,7 @@ export default abstract class StringId extends ValueObject<number | string | nul
     return super.toOutput();
   }
 
-  public validate(name: string): ValidationError[] | undefined {
+  public getErrors(name: string): ValidationError[] | undefined {
     const text = this.fromInput();
     if (text === null) {
       return undefined;

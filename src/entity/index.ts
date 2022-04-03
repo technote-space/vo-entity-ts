@@ -64,7 +64,7 @@ export default abstract class Entity<Args extends any[] = any> {
       const prevValue = prev ? prev[key] ?? undefined : undefined;
 
       if (member && member instanceof Collection) {
-        const errors: ValidationErrors | undefined = member.validate(prevValue);
+        const errors: ValidationErrors | undefined = member.getErrors(prevValue);
         if (errors) {
           return Object.entries(errors).reduce((acc, [key, value]) => {
             return {
@@ -77,7 +77,7 @@ export default abstract class Entity<Args extends any[] = any> {
 
       if (member && member instanceof ValueObject) {
         const name = key.replace(/^_/, '');
-        const errors: ValidationError[] | undefined = member.validate(name, prevValue);
+        const errors: ValidationError[] | undefined = member.getErrors(name, prevValue);
         if (errors?.length) {
           return errors.reduce((acc, error) => {
             return {

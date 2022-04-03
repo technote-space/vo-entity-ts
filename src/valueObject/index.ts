@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any */
 import InvalidUsage from '../exceptions/invalidUsage';
+import ValidationException from '../exceptions/validation';
 
 export type ValidationError = {
   name: string;
@@ -62,7 +63,19 @@ export default abstract class ValueObject<Input, Output, Inner = Output> {
 
   public abstract compare(value: this): number;
 
-  public abstract validate(name: string, prev?: ValueObject<Input, Output, Inner>): ValidationError[] | undefined;
+  public abstract getErrors(name: string, prev?: ValueObject<Input, Output, Inner>): ValidationError[] | undefined;
+
+  public validate(name: string, prev?: ValueObject<Input, Output, Inner>): void | never {
+    const errors = this.getErrors(name, prev);
+    if (errors && errors.length) {
+      throw new ValidationException(errors.reduce((acc, error) => {
+        return {
+          ...acc,
+          [error.name]: [...new Set([...(acc[error.name] ?? []), error.error])],
+        };
+      }, {}));
+    }
+  }
 
   public static create<Input, Instance extends ValueObject<any, any, any>>(
     this: new(value: Input) => Instance,

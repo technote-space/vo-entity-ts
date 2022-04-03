@@ -14,7 +14,7 @@ export default abstract class Date extends ValueObject<dayjs.ConfigType, dayjs.D
     return dayjs(this.inner);
   }
 
-  public validate(name: string): ValidationError[] | undefined {
+  public getErrors(name: string): ValidationError[] | undefined {
     if (typeof this.input === 'string' && !(isDate(this.input) || isISO8601(this.input))) {
       return [{ name, error: '日付の形式が正しくありません' }];
     }
