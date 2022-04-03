@@ -22,7 +22,7 @@ export default abstract class Text extends ValueObject<number | string, string> 
     return undefined;
   }
 
-  public validate(name: string): ValidationError[] | undefined {
+  public getErrors(name: string): ValidationError[] | undefined {
     const text = this.fromInput();
     const results: ValidationError[] = [];
 

@@ -25,10 +25,10 @@ describe('Date', () => {
     expect(date2.equals(date3)).toBe(true);
   });
 
-  it('should validate', () => {
-    expect(TestDate.create('2020-10-20').validate('test')).toBeUndefined();
-    expect(TestDate.create('2020-10-20T10:00:00+09:00').validate('test')).toBeUndefined();
-    expect(TestDate.create(undefined).validate('test')).toBeUndefined();
-    expect(TestDate.create('abc').validate('test')).toEqual([{ name: 'test', error: '日付の形式が正しくありません' }]);
+  it('should get errors', () => {
+    expect(TestDate.create('2020-10-20').getErrors('test')).toBeUndefined();
+    expect(TestDate.create('2020-10-20T10:00:00+09:00').getErrors('test')).toBeUndefined();
+    expect(TestDate.create(undefined).getErrors('test')).toBeUndefined();
+    expect(TestDate.create('abc').getErrors('test')).toEqual([{ name: 'test', error: '日付の形式が正しくありません' }]);
   });
 });
