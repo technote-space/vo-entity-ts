@@ -28,7 +28,7 @@ class TestValueObjectWithError extends ValueObject<number, number> {
   }
 
   public getErrors(name: string): ValidationError[] | undefined {
-    return [{ name, error: 'test error' }];
+    return [{ name, error: 'test error1' }, { name, error: 'test error2' }];
   }
 }
 
