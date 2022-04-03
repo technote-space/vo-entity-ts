@@ -19,6 +19,10 @@ export default abstract class StringId extends ValueObject<number | string | nul
     return super.toOutput();
   }
 
+  public isSet(): boolean {
+    return this.input !== null && this.input !== undefined;
+  }
+
   public getErrors(name: string): ValidationError[] | undefined {
     const text = this.fromInput();
     if (text === null) {
