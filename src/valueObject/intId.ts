@@ -25,6 +25,10 @@ export default abstract class IntId extends ValueObject<number | string | null, 
     return super.toOutput();
   }
 
+  public isSet(): boolean {
+    return this.input !== null && this.input !== undefined;
+  }
+
   public getErrors(name: string): ValidationError[] | undefined {
     const num = this.fromInput();
     if (num === null) {

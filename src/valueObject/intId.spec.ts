@@ -11,6 +11,7 @@ describe('IntId', () => {
     expect(TestIntId.create(123).value).toBe(123);
     expect(TestIntId.create(123.1).value).toBe(123);
     expect(TestIntId.create('123').value).toBe(123);
+    expect(TestIntId.create('123').isSet()).toBe(true);
   });
 
   it('should compare intId', () => {
@@ -33,6 +34,7 @@ describe('IntId', () => {
 
   it('should throw error if id is not set', () => {
     const id = TestIntId.create(null);
+    expect(id.isSet()).toBe(false);
     expect(() => id.value).toThrow('無効な値です');
   });
 });

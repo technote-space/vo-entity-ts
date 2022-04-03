@@ -10,6 +10,7 @@ describe('StringId', () => {
   it('should create stringId', () => {
     expect(TestStringId.create('test').value).toBe('test');
     expect(TestStringId.create('123').value).toBe('123');
+    expect(TestStringId.create('123').isSet()).toBe(true);
   });
 
   it('should compare stringId', () => {
@@ -31,6 +32,7 @@ describe('StringId', () => {
 
   it('should throw error if id is not set', () => {
     const id = TestStringId.create(null);
+    expect(id.isSet()).toBe(false);
     expect(() => id.value).toThrow('無効な値です');
   });
 });
