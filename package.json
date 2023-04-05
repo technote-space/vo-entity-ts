@@ -48,8 +48,8 @@
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
     "@types/validator": "^13.7.14",
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.57.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
     "eslint": "^8.37.0",
     "eslint-plugin-import": "^2.27.5",
     "husky": "^8.0.3",
@@ -57,8 +57,8 @@
     "jest-circus": "^29.5.0",
     "lint-staged": "^13.2.0",
     "pinst": "^3.0.0",
-    "ts-jest": "^29.0.5",
-    "typescript": "^5.0.2"
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.3"
   },
   "publishConfig": {
     "access": "public"
