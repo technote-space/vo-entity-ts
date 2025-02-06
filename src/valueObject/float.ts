@@ -1,14 +1,17 @@
-import type { ValidationError } from '.';
-import isNumeric from 'validator/lib/isNumeric';
-import ValueObject from '.';
+import { isNumeric } from 'validator';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
-export default abstract class Float extends ValueObject<number | string, number> {
-  protected fromInput(): number {
+export default abstract class Float extends ValueObject<
+  number | string,
+  number
+> {
+  protected override fromInput(): number {
     if (typeof this.input === 'number') {
       return this.input;
     }
 
-    let num = parseFloat(this.input);
+    let num = Number.parseFloat(this.input);
     const max = this.getMaxNumber();
     if (max !== undefined && num > max && this.isTruncateMode()) {
       num = Math.min(max, num);

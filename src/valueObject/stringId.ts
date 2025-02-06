@@ -1,9 +1,13 @@
-import type { ValidationError } from '.';
-import InvalidValueException from '../exceptions/invalidValue';
-import ValueObject from '.';
+import InvalidValueException from '../exceptions/invalidValue.js';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
-export default abstract class StringId extends ValueObject<number | string | null, string, string | null> {
-  protected fromInput(): string | null {
+export default abstract class StringId extends ValueObject<
+  number | string | null,
+  string,
+  string | null
+> {
+  protected override fromInput(): string | null {
     if (this.input === null) {
       return null;
     }
@@ -11,7 +15,7 @@ export default abstract class StringId extends ValueObject<number | string | nul
     return `${this.input}`;
   }
 
-  protected toOutput(): string {
+  protected override toOutput(): string {
     if (this.inner === null) {
       throw new InvalidValueException('id');
     }

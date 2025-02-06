@@ -1,7 +1,9 @@
-import type { ValidationError } from '.';
-import ValueObject from '.';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
-export default abstract class Flags<FlagTypes extends string> extends ValueObject<string, FlagTypes> {
+export default abstract class Flags<
+  FlagTypes extends string,
+> extends ValueObject<string, FlagTypes> {
   public abstract get flagTypes(): FlagTypes[];
 
   public getErrors(name: string): ValidationError[] | undefined {

@@ -1,4 +1,5 @@
-import Float from './float';
+import { describe, expect, it } from 'vitest';
+import Float from './float.js';
 
 class TestFloat extends Float {
   protected get symbol() {
@@ -7,25 +8,25 @@ class TestFloat extends Float {
 }
 
 class TestFloatWithLimit extends TestFloat {
-  protected get symbol() {
+  protected override get symbol() {
     return Symbol();
   }
 
-  protected getMaxNumber(): number | undefined {
+  protected override getMaxNumber(): number | undefined {
     return 10;
   }
 
-  protected getMinNumber(): number | undefined {
+  protected override getMinNumber(): number | undefined {
     return -10;
   }
 }
 
 class TestFloatWithTruncateMode extends TestFloatWithLimit {
-  protected get symbol() {
+  protected override get symbol() {
     return Symbol();
   }
 
-  protected isTruncateMode(): boolean {
+  protected override isTruncateMode(): boolean {
     return true;
   }
 }
@@ -49,14 +50,20 @@ describe('Float', () => {
 
   it('should get errors', () => {
     expect(TestFloat.create('123').getErrors('test')).toBeUndefined();
-    expect(TestFloat.create('abc').getErrors('test')).toEqual([{ name: 'test', error: '数値の形式が正しくありません' }]);
+    expect(TestFloat.create('abc').getErrors('test')).toEqual([
+      { name: 'test', error: '数値の形式が正しくありません' },
+    ]);
   });
 });
 
 describe('Float with limit', () => {
   it('should get errors', () => {
-    expect(TestFloatWithLimit.create('11').getErrors('test')).toEqual([{ name: 'test', error: '10以下の値を入力してください' }]);
-    expect(TestFloatWithLimit.create('-11').getErrors('test')).toEqual([{ name: 'test', error: '-10以上の値を入力してください' }]);
+    expect(TestFloatWithLimit.create('11').getErrors('test')).toEqual([
+      { name: 'test', error: '10以下の値を入力してください' },
+    ]);
+    expect(TestFloatWithLimit.create('-11').getErrors('test')).toEqual([
+      { name: 'test', error: '-10以上の値を入力してください' },
+    ]);
   });
 });
 
@@ -67,7 +74,11 @@ describe('Float(truncate mode)', () => {
   });
 
   it('should get errors', () => {
-    expect(TestFloatWithTruncateMode.create('11').getErrors('test')).toBeUndefined();
-    expect(TestFloatWithTruncateMode.create('-11').getErrors('test')).toBeUndefined();
+    expect(
+      TestFloatWithTruncateMode.create('11').getErrors('test'),
+    ).toBeUndefined();
+    expect(
+      TestFloatWithTruncateMode.create('-11').getErrors('test'),
+    ).toBeUndefined();
   });
 });

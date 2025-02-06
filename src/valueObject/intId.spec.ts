@@ -1,4 +1,5 @@
-import IntId from './intId';
+import { describe, expect, it } from 'vitest';
+import IntId from './intId.js';
 
 class TestIntId extends IntId {
   protected get symbol() {
@@ -28,8 +29,12 @@ describe('IntId', () => {
   it('should get errors', () => {
     expect(TestIntId.create('123').getErrors('test')).toBeUndefined();
     expect(TestIntId.create(null).getErrors('test')).toBeUndefined();
-    expect(TestIntId.create('').getErrors('test')).toEqual([{ name: 'test', error: '整数の形式が正しくありません' }]);
-    expect(TestIntId.create('10000000000000000').getErrors('test')).toEqual([{ name: 'test', error: '有効な整数ではありません' }]);
+    expect(TestIntId.create('').getErrors('test')).toEqual([
+      { name: 'test', error: '整数の形式が正しくありません' },
+    ]);
+    expect(TestIntId.create('10000000000000000').getErrors('test')).toEqual([
+      { name: 'test', error: '有効な整数ではありません' },
+    ]);
   });
 
   it('should throw error if id is not set', () => {

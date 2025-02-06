@@ -1,4 +1,4 @@
-import Exception from './exception';
+import Exception from './exception.js';
 
 export type ValidationErrors = {
   [name: string]: string[];

@@ -1,5 +1,6 @@
-import type { ValidationError } from '.';
-import ValueObject from '.';
+import { describe, expect, it } from 'vitest';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
 class Test extends ValueObject<number, number> {
   protected get symbol() {
@@ -11,7 +12,10 @@ class Test extends ValueObject<number, number> {
   }
 
   public getErrors(name: string): ValidationError[] | undefined {
-    return [{ name, error: 'test error1' }, { name, error: 'test error2' }];
+    return [
+      { name, error: 'test error1' },
+      { name, error: 'test error2' },
+    ];
   }
 
   public getInner() {

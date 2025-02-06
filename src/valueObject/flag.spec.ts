@@ -1,5 +1,5 @@
-import Flags from './flags';
-
+import { describe, expect, it } from 'vitest';
+import Flags from './flags.js';
 class TestFlags extends Flags<'test1' | 'test2'> {
   protected get symbol() {
     return Symbol();
@@ -31,6 +31,8 @@ describe('Flags', () => {
   });
 
   it('should throw error if not included flag', () => {
-    expect(TestFlags.create('test3').getErrors('test')).toEqual([{ name: 'test', error: '定義されていないフラグです: test3' }]);
+    expect(TestFlags.create('test3').getErrors('test')).toEqual([
+      { name: 'test', error: '定義されていないフラグです: test3' },
+    ]);
   });
 });

@@ -1,4 +1,5 @@
-import StringId from './stringId';
+import { describe, expect, it } from 'vitest';
+import StringId from './stringId.js';
 
 class TestStringId extends StringId {
   protected get symbol() {
@@ -27,7 +28,9 @@ describe('StringId', () => {
   it('should get errors', () => {
     expect(TestStringId.create('123').getErrors('test')).toBeUndefined();
     expect(TestStringId.create(null).getErrors('test')).toBeUndefined();
-    expect(TestStringId.create('').getErrors('test')).toEqual([{ name: 'test', error: '値を指定してください' }]);
+    expect(TestStringId.create('').getErrors('test')).toEqual([
+      { name: 'test', error: '値を指定してください' },
+    ]);
   });
 
   it('should throw error if id is not set', () => {

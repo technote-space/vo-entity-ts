@@ -1,6 +1,7 @@
-import Date from './date';
+import { describe, expect, it } from 'vitest';
+import DateObject from './date.js';
 
-class TestDate extends Date {
+class TestDate extends DateObject {
   protected get symbol() {
     return Symbol();
   }
@@ -27,8 +28,12 @@ describe('Date', () => {
 
   it('should get errors', () => {
     expect(TestDate.create('2020-10-20').getErrors('test')).toBeUndefined();
-    expect(TestDate.create('2020-10-20T10:00:00+09:00').getErrors('test')).toBeUndefined();
+    expect(
+      TestDate.create('2020-10-20T10:00:00+09:00').getErrors('test'),
+    ).toBeUndefined();
     expect(TestDate.create(undefined).getErrors('test')).toBeUndefined();
-    expect(TestDate.create('abc').getErrors('test')).toEqual([{ name: 'test', error: '日付の形式が正しくありません' }]);
+    expect(TestDate.create('abc').getErrors('test')).toEqual([
+      { name: 'test', error: '日付の形式が正しくありません' },
+    ]);
   });
 });

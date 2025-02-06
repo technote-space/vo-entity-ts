@@ -1,4 +1,5 @@
-import Text from './text';
+import { describe, expect, it } from 'vitest';
+import Text from './text.js';
 
 class TestText extends Text {
   protected get symbol() {
@@ -7,15 +8,15 @@ class TestText extends Text {
 }
 
 class TestTextWithLimit extends TestText {
-  protected get symbol() {
+  protected override get symbol() {
     return Symbol();
   }
 
-  protected getValidationMinLength(): number | undefined {
+  protected override getValidationMinLength(): number | undefined {
     return 5;
   }
 
-  protected getValidationMaxLength(): number | undefined {
+  protected override getValidationMaxLength(): number | undefined {
     return 10;
   }
 }
@@ -40,13 +41,19 @@ describe('Text', () => {
 
   it('should get errors', () => {
     expect(TestText.create('123').getErrors('test')).toEqual([]);
-    expect(TestText.create('').getErrors('test')).toEqual([{ name: 'test', error: '値を指定してください' }]);
+    expect(TestText.create('').getErrors('test')).toEqual([
+      { name: 'test', error: '値を指定してください' },
+    ]);
   });
 });
 
 describe('Text with limit', () => {
   it('should get errors', () => {
-    expect(TestTextWithLimit.create('1234').getErrors('test')).toEqual([{ name: 'test', error: '5文字より長く入力してください' }]);
-    expect(TestTextWithLimit.create('12345678901').getErrors('test')).toEqual([{ name: 'test', error: '10文字より短く入力してください' }]);
+    expect(TestTextWithLimit.create('1234').getErrors('test')).toEqual([
+      { name: 'test', error: '5文字より長く入力してください' },
+    ]);
+    expect(TestTextWithLimit.create('12345678901').getErrors('test')).toEqual([
+      { name: 'test', error: '10文字より短く入力してください' },
+    ]);
   });
 });

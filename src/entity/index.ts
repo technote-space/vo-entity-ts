@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { ValidationErrors } from '../exceptions/validation';
-import type { ValidationError } from '../valueObject';
-import InvalidUsage from '../exceptions/invalidUsage';
-import ValidationException from '../exceptions/validation';
-import ValueObject from '../valueObject';
-import Collection from './collection';
+import InvalidUsage from '../exceptions/invalidUsage.js';
+import type { ValidationErrors } from '../exceptions/validation.js';
+import ValidationException from '../exceptions/validation.js';
+import type { ValidationError } from '../valueObject/index.js';
+import ValueObject from '../valueObject/index.js';
+import Collection from './collection.js';
 
 export default abstract class Entity<Args extends any[] = any> {
   private static _isCreating = false;
@@ -16,11 +16,14 @@ export default abstract class Entity<Args extends any[] = any> {
   }
 
   protected static _create<Args extends any[], Instance extends Entity<Args>>(
-    this: new(...args: Args) => Instance,
+    this: new (
+      ...args: Args
+    ) => Instance,
     ...args: Args
   ) {
     try {
       Entity._isCreating = true;
+      // biome-ignore lint/complexity/noThisInStatic:
       const instance = new this(...args);
       instance.validate();
       return instance;
@@ -29,12 +32,13 @@ export default abstract class Entity<Args extends any[] = any> {
     }
   }
 
-  protected static _reconstruct<Args extends any[], Instance extends Entity<Args>>(
-    this: new(...args: Args) => Instance,
-    ...args: Args
-  ) {
+  protected static _reconstruct<
+    Args extends any[],
+    Instance extends Entity<Args>,
+  >(this: new (...args: Args) => Instance, ...args: Args) {
     try {
       Entity._isCreating = true;
+      // biome-ignore lint/complexity/noThisInStatic:
       return new this(...args);
     } finally {
       Entity._isCreating = false;
@@ -42,12 +46,15 @@ export default abstract class Entity<Args extends any[] = any> {
   }
 
   protected static _update<Args extends any[], Instance extends Entity<Args>>(
-    this: new(...args: Args) => Instance,
+    this: new (
+      ...args: Args
+    ) => Instance,
     target: Entity<Args>,
     ...args: Args
   ) {
     try {
       Entity._isCreating = true;
+      // biome-ignore lint/complexity/noThisInStatic:
       const instance = new this(...args);
       instance.validate(target);
       return instance;
@@ -60,30 +67,34 @@ export default abstract class Entity<Args extends any[] = any> {
 
   public getErrors(prev?: Entity<Args>): ValidationErrors {
     return Object.keys(this).reduce((acc, key) => {
-      const member = this[key] as any;
-      const prevValue = prev ? prev[key] ?? undefined : undefined;
+      const member = this[key as keyof Entity] as any;
+      const prevValue = prev
+        ? ((prev[key as keyof Entity] as any) ?? undefined)
+        : undefined;
 
       if (member && member instanceof Collection) {
-        const errors: ValidationErrors | undefined = member.getErrors(prevValue);
+        const errors: ValidationErrors | undefined =
+          member.getErrors(prevValue);
         if (errors) {
           return Object.entries(errors).reduce((acc, [key, value]) => {
-            return {
-              ...acc,
-              [key]: [...new Set([...(acc[key] ?? []), ...value])],
-            };
+            acc[key] = [...new Set([...(acc[key] ?? []), ...value])];
+            return acc;
           }, acc);
         }
       }
 
       if (member && member instanceof ValueObject) {
         const name = key.replace(/^_/, '');
-        const errors: ValidationError[] | undefined = member.getErrors(name, prevValue);
+        const errors: ValidationError[] | undefined = member.getErrors(
+          name,
+          prevValue,
+        );
         if (errors?.length) {
           return errors.reduce((acc, error) => {
-            return {
-              ...acc,
-              [error.name]: [...new Set([...(acc[error.name] ?? []), error.error])],
-            };
+            acc[error.name] = [
+              ...new Set([...(acc[error.name] ?? []), error.error]),
+            ];
+            return acc;
           }, acc);
         }
       }

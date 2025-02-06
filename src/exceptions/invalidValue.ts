@@ -1,4 +1,4 @@
-import Exception from './exception';
+import Exception from './exception.js';
 
 export default class InvalidValueException extends Exception {
   public constructor(target: string, reason?: string) {
