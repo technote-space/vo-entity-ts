@@ -1,13 +1,13 @@
-import type { ValidationError } from '.';
-import isInt from 'validator/lib/isInt';
-import Float from './float';
+import { isInt } from 'validator';
+import Float from './float.js';
+import type { ValidationError } from './index.js';
 
 export default abstract class Int extends Float {
-  protected fromInput(): number {
+  protected override fromInput(): number {
     return Math.floor(super.fromInput());
   }
 
-  public getErrors(name: string): ValidationError[] | undefined {
+  public override getErrors(name: string): ValidationError[] | undefined {
     const results = super.getErrors(name);
     if (results?.length) {
       return results;

@@ -1,4 +1,5 @@
-import Text from './text';
+import { describe, expect, it } from 'vitest';
+import Text from './text.js';
 
 class TestText extends Text {
   protected get symbol() {
@@ -7,30 +8,30 @@ class TestText extends Text {
 }
 
 class TestTextWithLimit extends TestText {
-  protected get symbol() {
+  protected override get symbol() {
     return Symbol();
   }
 
-  protected getValidationMinLength(): number | undefined {
+  protected override getValidationMinLength(): number | undefined {
     return 5;
   }
 
-  protected getValidationMaxLength(): number | undefined {
+  protected override getValidationMaxLength(): number | undefined {
     return 10;
   }
 }
 
 describe('Text', () => {
   it('should create text', () => {
-    expect(TestText.create('').value).toBe('');
-    expect(TestText.create('test').value).toBe('test');
-    expect(TestText.create(123).value).toBe('123');
+    expect(new TestText('').value).toBe('');
+    expect(new TestText('test').value).toBe('test');
+    expect(new TestText(123).value).toBe('123');
   });
 
   it('should compare text', () => {
-    const text1 = TestText.create('abc');
-    const text2 = TestText.create('def');
-    const text3 = TestText.create('def');
+    const text1 = new TestText('abc');
+    const text2 = new TestText('def');
+    const text3 = new TestText('def');
     expect(text1.compare(text2)).toBe(-1);
     expect(text2.compare(text1)).toBe(1);
     expect(text2.compare(text3)).toBe(0);
@@ -39,14 +40,20 @@ describe('Text', () => {
   });
 
   it('should get errors', () => {
-    expect(TestText.create('123').getErrors('test')).toEqual([]);
-    expect(TestText.create('').getErrors('test')).toEqual([{ name: 'test', error: '値を指定してください' }]);
+    expect(new TestText('123').getErrors('test')).toEqual([]);
+    expect(new TestText('').getErrors('test')).toEqual([
+      { name: 'test', error: '値を指定してください' },
+    ]);
   });
 });
 
 describe('Text with limit', () => {
   it('should get errors', () => {
-    expect(TestTextWithLimit.create('1234').getErrors('test')).toEqual([{ name: 'test', error: '5文字より長く入力してください' }]);
-    expect(TestTextWithLimit.create('12345678901').getErrors('test')).toEqual([{ name: 'test', error: '10文字より短く入力してください' }]);
+    expect(new TestTextWithLimit('1234').getErrors('test')).toEqual([
+      { name: 'test', error: '5文字より長く入力してください' },
+    ]);
+    expect(new TestTextWithLimit('12345678901').getErrors('test')).toEqual([
+      { name: 'test', error: '10文字より短く入力してください' },
+    ]);
   });
 });

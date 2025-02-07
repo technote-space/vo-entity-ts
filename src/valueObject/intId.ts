@@ -1,10 +1,14 @@
-import type { ValidationError } from '.';
-import isInt from 'validator/lib/isInt';
-import InvalidValueException from '../exceptions/invalidValue';
-import ValueObject from '.';
+import { isInt } from 'validator';
+import InvalidValueException from '../exceptions/invalidValue.js';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
-export default abstract class IntId extends ValueObject<number | string | null, number, number | null> {
-  protected fromInput(): number | null {
+export default abstract class IntId extends ValueObject<
+  number | string | null,
+  number,
+  number | null
+> {
+  protected override fromInput(): number | null {
     const _input = this.input;
     if (_input === null) {
       return null;
@@ -14,10 +18,10 @@ export default abstract class IntId extends ValueObject<number | string | null, 
       return Math.floor(_input);
     }
 
-    return Math.floor(parseFloat(_input));
+    return Math.floor(Number.parseFloat(_input));
   }
 
-  protected toOutput(): number {
+  protected override toOutput(): number {
     if (this.inner === null) {
       throw new InvalidValueException('id');
     }

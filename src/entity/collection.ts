@@ -1,7 +1,7 @@
-import type Entity from '.';
-import type { ValidationErrors } from '../exceptions/validation';
-import InvalidUsage from '../exceptions/invalidUsage';
-import ValidationException from '../exceptions/validation';
+import InvalidUsage from '../exceptions/invalidUsage.js';
+import type { ValidationErrors } from '../exceptions/validation.js';
+import ValidationException from '../exceptions/validation.js';
+import type Entity from './index.js';
 
 export default abstract class Collection<T extends Entity> {
   private static _isCreating = false;
@@ -35,11 +35,21 @@ export default abstract class Collection<T extends Entity> {
   }
 
   public getErrors(prev?: Collection<T>): ValidationErrors | undefined {
-    const getPrev = (item: T) => (prev?.collections ?? []).find(x => item.equals(x));
-    const errors = this.collections.reduce((acc, item, index) => ({
-      ...acc,
-      ...Object.fromEntries(Object.entries(item.getErrors(getPrev(item))).map(([key, value]) => [`${key}[${index}]`, value])),
-    }), {} as ValidationErrors);
+    const getPrev = (item: T) =>
+      (prev?.collections ?? []).find((x) => item.equals(x));
+    const errors = this.collections.reduce(
+      (acc, item, index) => ({
+        // biome-ignore lint/performance/noAccumulatingSpread:
+        ...acc,
+        ...Object.fromEntries(
+          Object.entries(item.getErrors(getPrev(item))).map(([key, value]) => [
+            `${key}[${index}]`,
+            value,
+          ]),
+        ),
+      }),
+      {} as ValidationErrors,
+    );
 
     if (Object.keys(errors).length) {
       return errors;
@@ -56,15 +66,17 @@ export default abstract class Collection<T extends Entity> {
   }
 
   public static create<T extends Entity, Instance extends Collection<T>>(
-    this: new(collections: T[]) => Instance,
+    this: new (
+      collections: T[],
+    ) => Instance,
     collections: T[],
   ): Instance {
     try {
       Collection._isCreating = true;
+      // biome-ignore lint/complexity/noThisInStatic:
       return new this(collections);
     } finally {
       Collection._isCreating = false;
     }
   }
 }
-

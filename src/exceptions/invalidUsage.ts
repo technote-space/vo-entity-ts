@@ -1,4 +1,4 @@
-import Exception from './exception';
+import Exception from './exception.js';
 
 export default class InvalidUsage extends Exception {
   public constructor(reason?: string) {

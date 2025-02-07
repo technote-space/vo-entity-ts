@@ -1,14 +1,17 @@
-import type { ValidationError } from '.';
-import ValueObject from '.';
+import type { ValidationError } from './index.js';
+import ValueObject from './index.js';
 
-export default abstract class Text extends ValueObject<number | string, string> {
-  protected fromInput(): string {
+export default abstract class Text extends ValueObject<
+  number | string,
+  string
+> {
+  protected override fromInput(): string {
     if (typeof this.input === 'number') {
       return `${this.input}`;
     }
 
     if (this.input) {
-      return this.input;
+      return `${this.input}`;
     }
 
     return '';
