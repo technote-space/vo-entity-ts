@@ -1,6 +1,6 @@
 {
   "name": "@technote-space/vo-entity-ts",
-  "version": "0.6.7",
+  "version": "0.7.0",
   "description": "",
   "keywords": [
     "ddd",
@@ -34,8 +34,8 @@
   "scripts": {
     "build": "tsc --emitDeclarationOnly && rollup -c",
     "cover": "vitest run --coverage",
-    "lint": "npx --yes @biomejs/biome check ./src",
     "format": "npx --yes @biomejs/biome check --write --unsafe ./src",
+    "lint": "npx --yes @biomejs/biome check ./src",
     "test": "npm run format && npm run typecheck && npm run cover",
     "typecheck": "tsc --noEmit",
     "update": "npx --yes npm-check-updates -u --timeout 100000 && npm i && npm audit fix --force"
