@@ -68,8 +68,8 @@ describe('Entity Collection', () => {
 
   describe('find', () => {
     const collection = TestCollection.create([
-      TestEntity.create(TestText.create(1), TestText.create('2')),
-      TestEntity.create(TestText.create(3), TestText.create('4')),
+      TestEntity.create(new TestText(1), new TestText('2')),
+      TestEntity.create(new TestText(3), new TestText('4')),
     ]);
 
     it('should return found item', () => {
@@ -89,9 +89,9 @@ describe('Entity Collection', () => {
   describe('filter', () => {
     it('should return filtered collection', () => {
       const collection = TestCollection.create([
-        TestEntity.create(TestText.create(1), TestText.create('2')),
-        TestEntity.create(TestText.create(3), TestText.create('4')),
-        TestEntity.create(TestText.create(5), TestText.create('6')),
+        TestEntity.create(new TestText(1), new TestText('2')),
+        TestEntity.create(new TestText(3), new TestText('4')),
+        TestEntity.create(new TestText(5), new TestText('6')),
       ]).filter((item) => item.text1.value === '1' || item.text2.value === '6');
 
       expect(collection).toHaveLength(2);
@@ -109,7 +109,7 @@ describe('Entity Collection', () => {
     it('should return false if not empty', () => {
       expect(
         TestCollection.create([
-          TestEntity.create(TestText.create(1), TestText.create('1')),
+          TestEntity.create(new TestText(1), new TestText('1')),
         ]).isEmpty(),
       ).toBe(false);
     });
@@ -119,17 +119,17 @@ describe('Entity Collection', () => {
     it('should not throw error', () => {
       expect(
         TestCollection.create([
-          TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
-          TestEntity.reconstruct(TestText.create(2), TestText.create('2')),
+          TestEntity.reconstruct(new TestText(1), new TestText('1')),
+          TestEntity.reconstruct(new TestText(2), new TestText('2')),
         ]).getErrors(),
       ).toBeUndefined();
     });
 
     it('should return validation errors', () => {
       const errors = TestCollection.create([
-        TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
-        TestEntity.reconstruct(TestText.create(2), TestText.create('')),
-        TestEntity.reconstruct(TestText.create(''), TestText.create('')),
+        TestEntity.reconstruct(new TestText(1), new TestText('1')),
+        TestEntity.reconstruct(new TestText(2), new TestText('')),
+        TestEntity.reconstruct(new TestText(''), new TestText('')),
       ]).getErrors();
 
       expect(errors).not.toBeUndefined();
@@ -145,8 +145,8 @@ describe('Entity Collection', () => {
     it('should be iterable', () => {
       const items: string[][] = [];
       for (const item of TestCollection.create([
-        TestEntity.reconstruct(TestText.create(1), TestText.create('2')),
-        TestEntity.reconstruct(TestText.create(3), TestText.create('4')),
+        TestEntity.reconstruct(new TestText(1), new TestText('2')),
+        TestEntity.reconstruct(new TestText(3), new TestText('4')),
       ])) {
         items.push([item.text1.value, item.text2.value]);
       }
@@ -162,8 +162,8 @@ describe('Entity Collection', () => {
     it('should throw error', () => {
       expect(() =>
         TestCollection.create([
-          TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
-          TestEntity.reconstruct(TestText.create(2), TestText.create('2')),
+          TestEntity.reconstruct(new TestText(1), new TestText('1')),
+          TestEntity.reconstruct(new TestText(2), new TestText('2')),
         ]).validate(),
       ).not.toThrow();
     });
@@ -175,8 +175,8 @@ describe('Entity with collection', () => {
     it('should return empty', () => {
       expect(
         TestEntityWithCollection.createWithCollection(
-          TestText.create(1),
-          TestText.create('1'),
+          new TestText(1),
+          new TestText('1'),
           TestCollection.create([]),
         ).getErrors(),
       ).toEqual({});
@@ -184,12 +184,12 @@ describe('Entity with collection', () => {
 
     it('should return validation errors', () => {
       const errors = TestEntityWithCollection.createWithCollection(
-        TestText.create(''),
-        TestText.create(''),
+        new TestText(''),
+        new TestText(''),
         TestCollection.create([
-          TestEntity.reconstruct(TestText.create(1), TestText.create('1')),
-          TestEntity.reconstruct(TestText.create(2), TestText.create('')),
-          TestEntity.reconstruct(TestText.create(''), TestText.create('')),
+          TestEntity.reconstruct(new TestText(1), new TestText('1')),
+          TestEntity.reconstruct(new TestText(2), new TestText('')),
+          TestEntity.reconstruct(new TestText(''), new TestText('')),
         ]),
       ).getErrors();
 
@@ -210,8 +210,8 @@ describe('Entity Collection with error', () => {
     it('should throw error', () => {
       expect(() =>
         TestCollectionWithError.create([
-          TestEntityWithError.reconstruct(TestValueObjectWithError.create(1)),
-          TestEntityWithError.reconstruct(TestValueObjectWithError.create(3)),
+          TestEntityWithError.reconstruct(new TestValueObjectWithError(1)),
+          TestEntityWithError.reconstruct(new TestValueObjectWithError(3)),
         ]).validate(),
       ).toThrow();
     });

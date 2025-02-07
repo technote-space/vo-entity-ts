@@ -12,13 +12,13 @@ class TestFlags extends Flags<'test1' | 'test2'> {
 
 describe('Flags', () => {
   it('should create flags', () => {
-    expect(TestFlags.create('test1').value).toBe('test1');
+    expect(new TestFlags('test1').value).toBe('test1');
   });
 
   it('should compare flags', () => {
-    const flag1 = TestFlags.create('test1');
-    const flag2 = TestFlags.create('test2');
-    const flag3 = TestFlags.create('test2');
+    const flag1 = new TestFlags('test1');
+    const flag2 = new TestFlags('test2');
+    const flag3 = new TestFlags('test2');
     expect(flag1.compare(flag2)).toBe(-1);
     expect(flag2.compare(flag1)).toBe(1);
     expect(flag2.compare(flag3)).toBe(0);
@@ -27,11 +27,11 @@ describe('Flags', () => {
   });
 
   it('should get errors', () => {
-    expect(TestFlags.create('test1').getErrors('test')).toBeUndefined();
+    expect(new TestFlags('test1').getErrors('test')).toBeUndefined();
   });
 
   it('should throw error if not included flag', () => {
-    expect(TestFlags.create('test3').getErrors('test')).toEqual([
+    expect(new TestFlags('test3').getErrors('test')).toEqual([
       { name: 'test', error: '定義されていないフラグです: test3' },
     ]);
   });

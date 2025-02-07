@@ -9,16 +9,16 @@ class TestIntId extends IntId {
 
 describe('IntId', () => {
   it('should create intId', () => {
-    expect(TestIntId.create(123).value).toBe(123);
-    expect(TestIntId.create(123.1).value).toBe(123);
-    expect(TestIntId.create('123').value).toBe(123);
-    expect(TestIntId.create('123').isSet()).toBe(true);
+    expect(new TestIntId(123).value).toBe(123);
+    expect(new TestIntId(123.1).value).toBe(123);
+    expect(new TestIntId('123').value).toBe(123);
+    expect(new TestIntId('123').isSet()).toBe(true);
   });
 
   it('should compare intId', () => {
-    const intId1 = TestIntId.create(123);
-    const intId2 = TestIntId.create(456);
-    const intId3 = TestIntId.create('456');
+    const intId1 = new TestIntId(123);
+    const intId2 = new TestIntId(456);
+    const intId3 = new TestIntId('456');
     expect(intId1.compare(intId2)).toBe(-1);
     expect(intId2.compare(intId1)).toBe(1);
     expect(intId2.compare(intId3)).toBe(0);
@@ -27,18 +27,18 @@ describe('IntId', () => {
   });
 
   it('should get errors', () => {
-    expect(TestIntId.create('123').getErrors('test')).toBeUndefined();
-    expect(TestIntId.create(null).getErrors('test')).toBeUndefined();
-    expect(TestIntId.create('').getErrors('test')).toEqual([
+    expect(new TestIntId('123').getErrors('test')).toBeUndefined();
+    expect(new TestIntId(null).getErrors('test')).toBeUndefined();
+    expect(new TestIntId('').getErrors('test')).toEqual([
       { name: 'test', error: '整数の形式が正しくありません' },
     ]);
-    expect(TestIntId.create('10000000000000000').getErrors('test')).toEqual([
+    expect(new TestIntId('10000000000000000').getErrors('test')).toEqual([
       { name: 'test', error: '有効な整数ではありません' },
     ]);
   });
 
   it('should throw error if id is not set', () => {
-    const id = TestIntId.create(null);
+    const id = new TestIntId(null);
     expect(id.isSet()).toBe(false);
     expect(() => id.value).toThrow('無効な値です');
   });

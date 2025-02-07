@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any */
-import InvalidUsage from '../exceptions/invalidUsage.js';
 import ValidationException from '../exceptions/validation.js';
 
 export type ValidationError = {
@@ -7,21 +6,12 @@ export type ValidationError = {
   error: string;
 };
 export default abstract class ValueObject<Input, Output, Inner = Output> {
-  private static _isCreating = false;
   private _setInner = false;
   private _inner?: Inner;
   private _setOutput = false;
   private _output?: Output;
 
-  // create メソッドの this コンテキストのせいで protected にはできない
-  /**
-   * @deprecated create 経由で生成
-   */
-  public constructor(private readonly _input: Input) {
-    if (!ValueObject._isCreating) {
-      throw new InvalidUsage();
-    }
-  }
+  public constructor(private readonly _input: Input) {}
 
   //noinspection JSUnusedGlobalSymbols
   protected abstract get symbol(): symbol;
@@ -87,21 +77,6 @@ export default abstract class ValueObject<Input, Output, Inner = Output> {
           {} as Record<string, string[]>,
         ),
       );
-    }
-  }
-
-  public static create<Input, Instance extends ValueObject<any, any, any>>(
-    this: new (
-      value: Input,
-    ) => Instance,
-    value: Input,
-  ): Instance {
-    try {
-      ValueObject._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      return new this(value);
-    } finally {
-      ValueObject._isCreating = false;
     }
   }
 }

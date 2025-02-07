@@ -9,15 +9,15 @@ class TestStringId extends StringId {
 
 describe('StringId', () => {
   it('should create stringId', () => {
-    expect(TestStringId.create('test').value).toBe('test');
-    expect(TestStringId.create('123').value).toBe('123');
-    expect(TestStringId.create('123').isSet()).toBe(true);
+    expect(new TestStringId('test').value).toBe('test');
+    expect(new TestStringId('123').value).toBe('123');
+    expect(new TestStringId('123').isSet()).toBe(true);
   });
 
   it('should compare stringId', () => {
-    const stringId1 = TestStringId.create('abc');
-    const stringId2 = TestStringId.create('def');
-    const stringId3 = TestStringId.create('def');
+    const stringId1 = new TestStringId('abc');
+    const stringId2 = new TestStringId('def');
+    const stringId3 = new TestStringId('def');
     expect(stringId1.compare(stringId2)).toBe(-1);
     expect(stringId2.compare(stringId1)).toBe(1);
     expect(stringId2.compare(stringId3)).toBe(0);
@@ -26,15 +26,15 @@ describe('StringId', () => {
   });
 
   it('should get errors', () => {
-    expect(TestStringId.create('123').getErrors('test')).toBeUndefined();
-    expect(TestStringId.create(null).getErrors('test')).toBeUndefined();
-    expect(TestStringId.create('').getErrors('test')).toEqual([
+    expect(new TestStringId('123').getErrors('test')).toBeUndefined();
+    expect(new TestStringId(null).getErrors('test')).toBeUndefined();
+    expect(new TestStringId('').getErrors('test')).toEqual([
       { name: 'test', error: '値を指定してください' },
     ]);
   });
 
   it('should throw error if id is not set', () => {
-    const id = TestStringId.create(null);
+    const id = new TestStringId(null);
     expect(id.isSet()).toBe(false);
     expect(() => id.value).toThrow('無効な値です');
   });
