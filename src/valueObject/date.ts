@@ -1,19 +1,34 @@
 import dayjs from 'dayjs';
 import { isDate, isISO8601 } from 'validator';
-import type { ValidationError } from './index.js';
-import ValueObject from './index.js';
+import { compareNullable } from './helper.js';
+import {
+  type NullableOrNot,
+  type ValidationError,
+  ValueObject,
+} from './index.js';
 
 // Inner type = string: consider serialization
-export default abstract class DateObject extends ValueObject<
-  dayjs.ConfigType,
-  dayjs.Dayjs,
-  string
+export abstract class DateObject<
+  Nullable extends boolean = false,
+> extends ValueObject<
+  NullableOrNot<dayjs.ConfigType, Nullable>,
+  NullableOrNot<dayjs.Dayjs, Nullable>,
+  NullableOrNot<string, Nullable>
 > {
-  protected override fromInput(): string {
-    return dayjs(this.input).toISOString();
+  protected override fromInput(): NullableOrNot<string, Nullable> {
+    const input = this.input;
+    if (input === null) {
+      return null as NullableOrNot<string, Nullable>;
+    }
+
+    return dayjs(input).toISOString();
   }
 
-  protected override toOutput(): dayjs.Dayjs {
+  protected override toOutput(): NullableOrNot<dayjs.Dayjs, Nullable> {
+    if (this.inner === null) {
+      return null as NullableOrNot<dayjs.Dayjs, Nullable>;
+    }
+
     return dayjs(this.inner);
   }
 
@@ -29,6 +44,10 @@ export default abstract class DateObject extends ValueObject<
   }
 
   public compare(value: this): number {
+    if (this.value === null || value.value === null) {
+      return compareNullable(this.value, value.value);
+    }
+
     if (this.value.isSame(value.value)) {
       return 0;
     }

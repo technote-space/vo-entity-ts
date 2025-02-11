@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ValidationError } from '../valueObject/index.js';
-import ValueObject from '../valueObject/index.js';
-import type Text from '../valueObject/text.js';
-import Collection from './collection.js';
-import Entity from './index.js';
+import { ValueObject } from '../valueObject/index.js';
+import type { Text } from '../valueObject/text.js';
+import { Collection } from './collection.js';
+import { Entity } from './index.js';
 import { TestEntity, TestText } from './index.spec.js';
 
 class TestCollection extends Collection<TestEntity> {}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type ValidationException from '../exceptions/validation.js';
-import Text from '../valueObject/text.js';
-import Entity from './index.js';
+import type { ValidationException } from '../exceptions/validation.js';
+import { Text } from '../valueObject/text.js';
+import { Entity } from './index.js';
 
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestText extends Text {
