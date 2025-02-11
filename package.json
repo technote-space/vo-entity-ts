@@ -1,6 +1,6 @@
 {
   "name": "@technote-space/vo-entity-ts",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "",
   "keywords": [
     "ddd",
@@ -23,6 +23,7 @@
   },
   "type": "module",
   "exports": {
+    "types": "./dist/index.d.ts",
     "import": "./dist/index.mjs",
     "require": "./dist/index.cjs"
   },
