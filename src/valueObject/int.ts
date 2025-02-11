@@ -1,13 +1,24 @@
 import { isInt } from 'validator';
-import Float from './float.js';
-import type { ValidationError } from './index.js';
+import { Float } from './float.js';
+import type { NullableOrNot, ValidationError } from './index.js';
 
-export default abstract class Int extends Float {
-  protected override fromInput(): number {
-    return Math.floor(super.fromInput());
+export abstract class Int<
+  Nullable extends boolean = false,
+> extends Float<Nullable> {
+  protected override fromInput(): NullableOrNot<number, Nullable> {
+    const input = super.fromInput();
+    if (input === null) {
+      return null as NullableOrNot<number, Nullable>;
+    }
+
+    return Math.floor(input);
   }
 
   public override getErrors(name: string): ValidationError[] | undefined {
+    if (this.input === null) {
+      return undefined;
+    }
+
     const results = super.getErrors(name);
     if (results?.length) {
       return results;

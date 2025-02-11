@@ -1,20 +1,23 @@
-import type { ValidationError } from './index.js';
-import ValueObject from './index.js';
+import { compareNullable } from './helper.js';
+import {
+  type NullableOrNot,
+  type ValidationError,
+  ValueObject,
+} from './index.js';
 
-export default abstract class Text extends ValueObject<
-  number | string,
-  string
+export abstract class Text<
+  Nullable extends boolean = false,
+> extends ValueObject<
+  NullableOrNot<number | string, Nullable>,
+  NullableOrNot<string, Nullable>
 > {
-  protected override fromInput(): string {
-    if (typeof this.input === 'number') {
-      return `${this.input}`;
+  protected override fromInput(): NullableOrNot<string, Nullable> {
+    const input = this.input;
+    if (input === null) {
+      return null as NullableOrNot<string, Nullable>;
     }
 
-    if (this.input) {
-      return `${this.input}`;
-    }
-
-    return '';
+    return `${input}`;
   }
 
   protected getValidationMinLength(): number | undefined {
@@ -27,8 +30,11 @@ export default abstract class Text extends ValueObject<
 
   public getErrors(name: string): ValidationError[] | undefined {
     const text = this.fromInput();
-    const results: ValidationError[] = [];
+    if (text === null) {
+      return undefined;
+    }
 
+    const results: ValidationError[] = [];
     if (!text.length) {
       results.push({ name, error: '値を指定してください' });
     } else {
@@ -43,10 +49,14 @@ export default abstract class Text extends ValueObject<
       results.push({ name, error: `${max}文字より短く入力してください` });
     }
 
-    return results;
+    return results.length ? results : undefined;
   }
 
   public compare(value: this): number {
+    if (this.value === null || value.value === null) {
+      return compareNullable(this.value, value.value);
+    }
+
     return this.value.localeCompare(value.value);
   }
 }

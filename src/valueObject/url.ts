@@ -1,9 +1,20 @@
 import { isURL } from 'validator';
-import type { ValidationError } from './index.js';
-import ValueObject from './index.js';
+import { compareNullable } from './helper.js';
+import {
+  type NullableOrNot,
+  type ValidationError,
+  ValueObject,
+} from './index.js';
 
-export default abstract class Url extends ValueObject<string, string> {
+export abstract class Url<Nullable extends boolean = false> extends ValueObject<
+  NullableOrNot<string, Nullable>,
+  NullableOrNot<string, Nullable>
+> {
   public getErrors(name: string): ValidationError[] | undefined {
+    if (this.input === null) {
+      return undefined;
+    }
+
     if (!isURL(this.input)) {
       return [{ name, error: 'URLの形式が正しくありません' }];
     }
@@ -12,6 +23,10 @@ export default abstract class Url extends ValueObject<string, string> {
   }
 
   public compare(value: this): number {
+    if (this.value === null || value.value === null) {
+      return compareNullable(this.value, value.value);
+    }
+
     return this.value.localeCompare(value.value);
   }
 }

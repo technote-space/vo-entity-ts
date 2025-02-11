@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ValidationError } from './index.js';
-import ValueObject from './index.js';
+import { type ValidationError, ValueObject } from './index.js';
 
 class Test extends ValueObject<number, number> {
   protected get symbol() {

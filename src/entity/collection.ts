@@ -1,9 +1,9 @@
-import InvalidUsage from '../exceptions/invalidUsage.js';
+import { InvalidUsage } from '../exceptions/invalidUsage.js';
 import type { ValidationErrors } from '../exceptions/validation.js';
-import ValidationException from '../exceptions/validation.js';
-import type Entity from './index.js';
+import { ValidationException } from '../exceptions/validation.js';
+import type { Entity } from './index.js';
 
-export default abstract class Collection<T extends Entity> {
+export abstract class Collection<T extends Entity> {
   private static _isCreating = false;
 
   // create メソッドの this コンテキストのせいで protected にはできない

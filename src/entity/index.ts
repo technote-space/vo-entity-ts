@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import InvalidUsage from '../exceptions/invalidUsage.js';
+import { InvalidUsage } from '../exceptions/invalidUsage.js';
 import type { ValidationErrors } from '../exceptions/validation.js';
-import ValidationException from '../exceptions/validation.js';
+import { ValidationException } from '../exceptions/validation.js';
 import type { ValidationError } from '../valueObject/index.js';
-import ValueObject from '../valueObject/index.js';
-import Collection from './collection.js';
+import { ValueObject } from '../valueObject/index.js';
+import { Collection } from './collection.js';
 
-export default abstract class Entity<Args extends any[] = any> {
+export abstract class Entity<Args extends any[] = any> {
   private static _isCreating = false;
 
   protected constructor() {

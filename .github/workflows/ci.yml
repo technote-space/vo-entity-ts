@@ -13,31 +13,15 @@ jobs:
     env:
       LINT: 1
     steps:
-      - name: Set running flag
-        run: echo "RUNNING=1" >> $GITHUB_ENV
       - uses: actions/checkout@v3
-      - uses: technote-space/get-git-comment-action@v1
-        with:
-          PATTERNS: +(src|__tests__)/**/*.+(js|ts)
-          FILES: |
-            package-lock.json
-            .eslintrc
-        if: "! contains(env.COMMIT_MESSAGE, '[skip ci]') && ! contains(env.COMMIT_MESSAGE, '[ci skip]')"
-      - name: Set running flag
-        run: echo "RUNNING=" >> $GITHUB_ENV
-        if: "! env.GIT_DIFF"
-
       - uses: actions/setup-node@v3
         with:
           node-version: 22
           cache: npm
-        if: env.RUNNING
       - name: Install Package dependencies
         run: npm i
-        if: env.RUNNING
       - name: Check code style
         run: npm run lint
-        if: env.RUNNING
 
   cover:
     name: Coverage
@@ -48,44 +32,15 @@ jobs:
       matrix:
         node: ['18', '20', '22']
     steps:
-      - name: Set running flag
-        run: echo "RUNNING=1" >> $GITHUB_ENV
       - uses: actions/checkout@v3
-      - uses: technote-space/get-git-comment-action@v1
-      - uses: technote-space/get-diff-action@v6
-        with:
-          PATTERNS: +(src|__tests__)/**/*.+(js|ts|snap)
-          FILES: |
-            package-lock.json
-            jest.config.js
-            vite.config.ts
-        if: "! contains(env.COMMIT_MESSAGE, '[skip ci]') && ! contains(env.COMMIT_MESSAGE, '[ci skip]')"
-      - name: Set running flag
-        run: echo "RUNNING=" >> $GITHUB_ENV
-        if: "! env.GIT_DIFF"
-      - name: Set running flag
-        if: "matrix.node == '22' && ! startsWith(github.ref, 'refs/tags/') && github.event.base_ref == format('refs/heads/{0}', github.event.repository.default_branch)"
-        run: echo "RUNNING=1" >> $GITHUB_ENV
-      - name: Set running flag
-        if: matrix.node == '22' && startsWith(github.ref, 'refs/tags/v')
-        run: echo "RUNNING=1" >> $GITHUB_ENV
-      - name: Set running flag
-        run: |
-          if [[ ! -f package.json ]] || ! < package.json jq -r '.scripts | keys[]' | grep -qe '^cover$'; then
-            echo "RUNNING=" >> $GITHUB_ENV
-          fi
-
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-        if: env.RUNNING
       - name: Install Package dependencies
         run: npm i
-        if: env.RUNNING
       - name: Run tests
         run: npm run cover
-        if: env.RUNNING
       - name: Codecov
         run: |
           if [ -n "$CODECOV_TOKEN" ]; then
@@ -94,7 +49,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           COVERAGE_FILE: ./coverage/lcov.info
-        if: env.RUNNING && matrix.node == '22'
+        if: matrix.node == '22'
 
   package:
     name: Publish Package

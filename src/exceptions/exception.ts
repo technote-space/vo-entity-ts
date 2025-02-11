@@ -1,6 +1,6 @@
 export type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500;
 
-export default class Exception extends Error {
+export class Exception extends Error {
   public constructor(
     public readonly status: ErrorStatus,
     message: string,

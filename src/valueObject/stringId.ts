@@ -1,30 +1,28 @@
-import InvalidValueException from '../exceptions/invalidValue.js';
-import type { ValidationError } from './index.js';
-import ValueObject from './index.js';
+import { ulid } from 'ulid';
+import { compareNullable } from './helper.js';
+import {
+  type NullableOrNot,
+  type ValidationError,
+  ValueObject,
+} from './index.js';
 
-export default abstract class StringId extends ValueObject<
-  number | string | null,
-  string,
-  string | null
+export abstract class StringId<
+  Nullable extends boolean = false,
+> extends ValueObject<
+  NullableOrNot<number | string | undefined, Nullable>,
+  NullableOrNot<string, Nullable>,
+  NullableOrNot<string, Nullable>
 > {
-  protected override fromInput(): string | null {
+  protected override fromInput(): NullableOrNot<string, Nullable> {
+    if (this.input === undefined) {
+      return ulid();
+    }
+
     if (this.input === null) {
-      return null;
+      return null as NullableOrNot<string, Nullable>;
     }
 
     return `${this.input}`;
-  }
-
-  protected override toOutput(): string {
-    if (this.inner === null) {
-      throw new InvalidValueException('id');
-    }
-
-    return super.toOutput();
-  }
-
-  public isSet(): boolean {
-    return this.input !== null && this.input !== undefined;
   }
 
   public getErrors(name: string): ValidationError[] | undefined {
@@ -41,6 +39,10 @@ export default abstract class StringId extends ValueObject<
   }
 
   public compare(value: this): number {
+    if (this.value === null || value.value === null) {
+      return compareNullable(this.value, value.value);
+    }
+
     return this.value.localeCompare(value.value);
   }
 }

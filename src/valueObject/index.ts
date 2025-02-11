@@ -1,11 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any */
-import ValidationException from '../exceptions/validation.js';
+import {
+  type ValidationErrors,
+  ValidationException,
+} from '../exceptions/validation.js';
+
+export type NullableOrNot<T, Nullable extends boolean> = Nullable extends true
+  ? T | null
+  : T;
 
 export type ValidationError = {
   name: string;
   error: string;
 };
-export default abstract class ValueObject<Input, Output, Inner = Output> {
+export abstract class ValueObject<Input, Output, Inner = Output> {
   private _setInner = false;
   private _inner?: Inner;
   private _setOutput = false;
@@ -67,15 +74,12 @@ export default abstract class ValueObject<Input, Output, Inner = Output> {
     const errors = this.getErrors(name, prev);
     if (errors?.length) {
       throw new ValidationException(
-        errors.reduce(
-          (acc, error) => {
-            acc[error.name] = [
-              ...new Set([...(acc[error.name] ?? []), error.error]),
-            ];
-            return acc;
-          },
-          {} as Record<string, string[]>,
-        ),
+        errors.reduce((acc, error) => {
+          acc[error.name] = [
+            ...new Set([...(acc[error.name] ?? []), error.error]),
+          ];
+          return acc;
+        }, {} as ValidationErrors),
       );
     }
   }
