@@ -58,6 +58,7 @@ export abstract class Collection<T extends Entity> {
     return undefined;
   }
 
+  // biome-ignore lint/suspicious/noConfusingVoidType:
   public validate(prev?: Collection<T>): void | never {
     const errors = this.getErrors(prev);
     if (errors) {

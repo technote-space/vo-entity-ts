@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-explicit-any */
 import {
   type ValidationErrors,
   ValidationException,
@@ -70,6 +69,7 @@ export abstract class ValueObject<Input, Output, Inner = Output> {
   public validate(
     name: string,
     prev?: ValueObject<Input, Output, Inner>,
+    // biome-ignore lint/suspicious/noConfusingVoidType:
   ): void | never {
     const errors = this.getErrors(name, prev);
     if (errors?.length) {
