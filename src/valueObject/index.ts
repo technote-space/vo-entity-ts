@@ -1,8 +1,3 @@
-import {
-  type ValidationErrors,
-  ValidationException,
-} from '../exceptions/validation.js';
-
 export type NullableOrNot<T, Nullable extends boolean> = Nullable extends true
   ? T | null
   : T;
@@ -65,22 +60,4 @@ export abstract class ValueObject<Input, Output, Inner = Output> {
     name: string,
     prev?: ValueObject<Input, Output, Inner>,
   ): ValidationError[] | undefined;
-
-  public validate(
-    name: string,
-    prev?: ValueObject<Input, Output, Inner>,
-    // biome-ignore lint/suspicious/noConfusingVoidType:
-  ): void | never {
-    const errors = this.getErrors(name, prev);
-    if (errors?.length) {
-      throw new ValidationException(
-        errors.reduce((acc, error) => {
-          acc[error.name] = [
-            ...new Set([...(acc[error.name] ?? []), error.error]),
-          ];
-          return acc;
-        }, {} as ValidationErrors),
-      );
-    }
-  }
 }
