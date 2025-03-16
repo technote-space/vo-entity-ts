@@ -53,7 +53,7 @@ jobs:
     name: Check package version
     runs-on: ubuntu-latest
     timeout-minutes: 3
-    if: "github.event.action == 'synchronize' && github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')"
+    if: "(github.event.action == 'opened' || github.event.action == 'synchronize') && github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')"
     steps:
       - uses: technote-space/load-config-action@v1
         with:
