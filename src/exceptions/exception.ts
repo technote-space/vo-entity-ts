@@ -4,7 +4,7 @@ export class Exception extends Error {
   public constructor(
     public readonly status: ErrorStatus,
     message: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny:
     public readonly context?: Record<string, any>,
   ) {
     super(message);

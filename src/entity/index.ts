@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { InvalidUsage } from '../exceptions/invalidUsage.js';
 import type { ValidationErrors } from '../exceptions/validation.js';
 import { ValidationException } from '../exceptions/validation.js';
@@ -6,6 +5,12 @@ import type { ValidationError } from '../valueObject/index.js';
 import { ValueObject } from '../valueObject/index.js';
 import { Collection } from './collection.js';
 
+// biome-ignore lint/suspicious/noExplicitAny:
+type Constructor<Args extends any[], Instance extends Entity<Args>> = new (
+  ...args: Args
+) => Instance;
+
+// biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Args extends any[] = any> {
   private static _isCreating = false;
 
@@ -15,10 +20,9 @@ export abstract class Entity<Args extends any[] = any> {
     }
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny:
   protected static _create<Args extends any[], Instance extends Entity<Args>>(
-    this: new (
-      ...args: Args
-    ) => Instance,
+    this: Constructor<Args, Instance>,
     ...args: Args
   ) {
     try {
@@ -33,9 +37,10 @@ export abstract class Entity<Args extends any[] = any> {
   }
 
   protected static _reconstruct<
+    // biome-ignore lint/suspicious/noExplicitAny:
     Args extends any[],
     Instance extends Entity<Args>,
-  >(this: new (...args: Args) => Instance, ...args: Args) {
+  >(this: Constructor<Args, Instance>, ...args: Args) {
     try {
       Entity._isCreating = true;
       // biome-ignore lint/complexity/noThisInStatic:
@@ -45,10 +50,9 @@ export abstract class Entity<Args extends any[] = any> {
     }
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny:
   protected static _update<Args extends any[], Instance extends Entity<Args>>(
-    this: new (
-      ...args: Args
-    ) => Instance,
+    this: Constructor<Args, Instance>,
     target: Entity<Args>,
     ...args: Args
   ) {
@@ -67,9 +71,11 @@ export abstract class Entity<Args extends any[] = any> {
 
   public getErrors(prev?: Entity<Args>): ValidationErrors {
     return Object.keys(this).reduce((acc, key) => {
+      // biome-ignore lint/suspicious/noExplicitAny:
       const member = this[key as keyof Entity] as any;
       const prevValue = prev
-        ? ((prev[key as keyof Entity] as any) ?? undefined)
+        ? // biome-ignore lint/suspicious/noExplicitAny:
+          ((prev[key as keyof Entity] as any) ?? undefined)
         : undefined;
 
       if (member && member instanceof Collection) {
@@ -103,6 +109,7 @@ export abstract class Entity<Args extends any[] = any> {
     }, {} as ValidationErrors);
   }
 
+  // biome-ignore lint/suspicious/noConfusingVoidType:
   private validate(prev?: Entity<Args>): void | never {
     const errors = this.getErrors(prev);
     if (Object.keys(errors).length) {

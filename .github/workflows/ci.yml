@@ -6,8 +6,8 @@ concurrency:
 name: CI
 
 jobs:
-  eslint:
-    name: ESLint
+  code-style:
+    name: Check code style
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -21,11 +21,11 @@ jobs:
       - name: Install Package dependencies
         run: npm i
       - name: Check code style
-        run: npm run lint
+        run: npm run check
 
   cover:
     name: Coverage
-    needs: eslint
+    needs: code-style
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:

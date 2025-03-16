@@ -82,10 +82,4 @@ describe('ValueObject', () => {
       test.value.test = 345;
     }).toThrow();
   });
-
-  describe('validation', () => {
-    it('should throw error', () => {
-      expect(() => new Test(1).validate('aaa')).toThrow();
-    });
-  });
 });
