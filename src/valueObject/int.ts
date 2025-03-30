@@ -1,4 +1,4 @@
-import { isInt } from 'validator';
+import validator from 'validator';
 import { Float } from './float.js';
 import type { NullableOrNot, ValidationError } from './index.js';
 
@@ -24,7 +24,7 @@ export abstract class Int<
       return results;
     }
 
-    if (typeof this.input === 'string' && !isInt(this.input)) {
+    if (typeof this.input === 'string' && !validator.isInt(this.input)) {
       return [{ name, error: '整数の形式が正しくありません' }];
     }
 
