@@ -1,4 +1,4 @@
-import { isURL } from 'validator';
+import validator from 'validator';
 import { compareNullable } from './helper.js';
 import {
   type NullableOrNot,
@@ -15,7 +15,7 @@ export abstract class Url<Nullable extends boolean = false> extends ValueObject<
       return undefined;
     }
 
-    if (!isURL(this.input)) {
+    if (!validator.isURL(this.input)) {
       return [{ name, error: 'URLの形式が正しくありません' }];
     }
 

@@ -1,4 +1,4 @@
-import { isNumeric } from 'validator';
+import validator from 'validator';
 import { compareNullable } from './helper.js';
 import {
   type NullableOrNot,
@@ -54,7 +54,7 @@ export abstract class Float<
       return undefined;
     }
 
-    if (typeof this.input === 'string' && !isNumeric(this.input)) {
+    if (typeof this.input === 'string' && !validator.isNumeric(this.input)) {
       return [{ name, error: '数値の形式が正しくありません' }];
     }
 

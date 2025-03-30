@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { isDate, isISO8601 } from 'validator';
+import validator from 'validator';
 import { compareNullable } from './helper.js';
 import {
   type NullableOrNot,
@@ -35,7 +35,7 @@ export abstract class DateObject<
   public getErrors(name: string): ValidationError[] | undefined {
     if (
       typeof this.input === 'string' &&
-      !(isDate(this.input) || isISO8601(this.input))
+      !(validator.isDate(this.input) || validator.isISO8601(this.input))
     ) {
       return [{ name, error: '日付の形式が正しくありません' }];
     }
