@@ -5,6 +5,7 @@ const common = {
   plugins: [
     pluginTypescript(),
   ],
+  external: ['dayjs', 'ulid', 'validator'],
 };
 
 export default [
