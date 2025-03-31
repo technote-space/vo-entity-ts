@@ -6,6 +6,7 @@ export { Int } from './valueObject/int.js';
 export { StringId } from './valueObject/stringId.js';
 export { Text } from './valueObject/text.js';
 export { Url } from './valueObject/url.js';
+export { Email } from './valueObject/email.js';
 
 export { Entity } from './entity/index.js';
 export { Collection } from './entity/collection.js';
