@@ -10,3 +10,10 @@ export { Email } from './valueObject/email.js';
 
 export { Entity } from './entity/index.js';
 export { Collection } from './entity/collection.js';
+
+export { Exception } from './exceptions/exception.js';
+export { InvalidUsage } from './exceptions/invalidUsage.js';
+export {
+  ValidationErrors,
+  ValidationException,
+} from './exceptions/validation.js';
