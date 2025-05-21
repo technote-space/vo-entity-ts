@@ -17,6 +17,14 @@
   - [yarn](#yarn)
   - [npm](#npm)
 - [Author](#author)
+- [特徴](#%E7%89%B9%E5%BE%B4)
+- [Value Object](#value-object)
+  - [使用例](#%E4%BD%BF%E7%94%A8%E4%BE%8B)
+- [Entity](#entity)
+  - [使用例](#%E4%BD%BF%E7%94%A8%E4%BE%8B-1)
+- [コレクション](#%E3%82%B3%E3%83%AC%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3)
+- [ライセンス](#%E3%83%A9%E3%82%A4%E3%82%BB%E3%83%B3%E3%82%B9)
+- [開発](#%E9%96%8B%E7%99%BA)
 
 </details>
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
