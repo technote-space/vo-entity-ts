@@ -16,17 +16,17 @@ export class TestText extends Text {
 
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestEntity extends Entity {
-  protected constructor(
-    public readonly text1: Text,
-    public readonly text2: Text,
-    public readonly text3?: Text,
-    public readonly text4?: Text,
-  ) {
-    super();
+  protected constructor(props: {
+    text1: Text;
+    text2: Text;
+    text3?: Text;
+    text4?: Text;
+  }) {
+    super(props);
   }
 
   public static create(text1: Text, text2: Text): TestEntity {
-    return TestEntity._create(text1, text2);
+    return TestEntity._create({ text1, text2 });
   }
 
   public static reconstruct(
@@ -35,48 +35,47 @@ export class TestEntity extends Entity {
     text3?: Text,
     text4?: Text,
   ): TestEntity {
-    return TestEntity._reconstruct(text1, text2, text3, text4);
+    return TestEntity._reconstruct({ text1, text2, text3, text4 });
   }
 
   public update({ text3, text4 }: { text3?: Text; text4?: Text }): TestEntity {
-    return TestEntity._update(this, this.text1, this.text2, text3, text4);
+    return TestEntity._update(this, { text3, text4 });
   }
 
   public equals(other: TestEntity): boolean {
-    return this.text1.equals(other.text1);
+    return this.get('text1').equals(other.get('text1'));
   }
 }
 
 // biome-ignore lint/suspicious/noExportsInTest:
-export class TestEntityWithEntity extends Entity {
-  protected constructor(
-    public readonly text: Text,
-    public readonly entity: TestEntity,
-  ) {
-    super();
+export class TestEntityWithEntity extends Entity<{
+  text: Text;
+  entity: TestEntity;
+}> {
+  protected constructor(props: { text: Text; entity: TestEntity }) {
+    super(props);
   }
 
   public static create(text: Text, entity: TestEntity): TestEntityWithEntity {
-    return TestEntityWithEntity._create(text, entity);
+    return TestEntityWithEntity._create({ text, entity });
   }
 
   public static reconstruct(
     text: Text,
     entity: TestEntity,
   ): TestEntityWithEntity {
-    return TestEntityWithEntity._reconstruct(text, entity);
+    return TestEntityWithEntity._reconstruct({ text, entity });
   }
 
   public update({ text, entity }: { text?: Text; entity?: TestEntity }) {
-    return TestEntityWithEntity._update(
-      this,
-      text ?? this.text,
-      entity ?? this.entity,
-    );
+    return TestEntityWithEntity._update(this, { text, entity });
   }
 
   public equals(other: TestEntityWithEntity): boolean {
-    return this.text.equals(other.text) && this.entity.equals(other.entity);
+    return (
+      this.get('text').equals(other.get('text')) &&
+      this.get('entity').equals(other.get('entity'))
+    );
   }
 }
 
@@ -179,8 +178,8 @@ describe('Entity', () => {
         },
       );
 
-      expect(test.text3?.value).toBe('1');
-      expect(test.text4?.value).toBe('abcde');
+      expect(test.get('text3')?.value).toBe('1');
+      expect(test.get('text4')?.value).toBe('abcde');
     });
 
     it('should throw error', () => {
@@ -210,11 +209,11 @@ describe('Entity', () => {
       const entity = TestEntity.reconstruct(new TestText(1), new TestText('1'));
       const result = TestEntityWithEntity.create(text, entity);
 
-      expect(result.text.value).toBe('1');
-      expect(result.entity.text1.value).toBe('1');
-      expect(result.entity.text2.value).toBe('1');
-      expect(result.entity.text3?.value).toBeUndefined();
-      expect(result.entity.text4?.value).toBeUndefined();
+      expect(result.get('text').value).toBe('1');
+      expect(result.get('entity').get('text1').value).toBe('1');
+      expect(result.get('entity').get('text2').value).toBe('1');
+      expect(result.get('entity').get('text3')?.value).toBeUndefined();
+      expect(result.get('entity').get('text4')?.value).toBeUndefined();
     });
 
     it('should reconstruct entity with entity argument', () => {
@@ -227,11 +226,11 @@ describe('Entity', () => {
       );
       const result = TestEntityWithEntity.reconstruct(text, entity);
 
-      expect(result.text.value).toBe('1');
-      expect(result.entity.text1.value).toBe('1');
-      expect(result.entity.text2.value).toBe('1');
-      expect(result.entity.text3?.value).toBe('3');
-      expect(result.entity.text4?.value).toBe('4');
+      expect(result.get('text').value).toBe('1');
+      expect(result.get('entity').get('text1').value).toBe('1');
+      expect(result.get('entity').get('text2').value).toBe('1');
+      expect(result.get('entity').get('text3')?.value).toBe('3');
+      expect(result.get('entity').get('text4')?.value).toBe('4');
     });
 
     it('should update entity with entity argument', () => {
@@ -243,11 +242,11 @@ describe('Entity', () => {
       const newEntity = TestEntity.create(new TestText(2), new TestText('2'));
       const result = test.update({ text: newText, entity: newEntity });
 
-      expect(result.text.value).toBe('2');
-      expect(result.entity.text1.value).toBe('2');
-      expect(result.entity.text2.value).toBe('2');
-      expect(result.entity.text3?.value).toBeUndefined();
-      expect(result.entity.text4?.value).toBeUndefined();
+      expect(result.get('text').value).toBe('2');
+      expect(result.get('entity').get('text1').value).toBe('2');
+      expect(result.get('entity').get('text2').value).toBe('2');
+      expect(result.get('entity').get('text3')?.value).toBeUndefined();
+      expect(result.get('entity').get('text4')?.value).toBeUndefined();
     });
 
     it('should validate nested entity errors', () => {

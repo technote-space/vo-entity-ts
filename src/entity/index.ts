@@ -4,47 +4,60 @@ import type { ValidationError } from '../valueObject/index.js';
 import { ValueObject } from '../valueObject/index.js';
 import { Collection } from './collection.js';
 
-// biome-ignore lint/suspicious/noExplicitAny:
-type EntityArg = ValueObject<any, any> | Entity | Collection<any> | undefined;
+type EntityPropType =
+  // biome-ignore lint/suspicious/noExplicitAny:
+  | ValueObject<any, any>
+  | Entity
+  // biome-ignore lint/suspicious/noExplicitAny:
+  | Collection<any>
+  | undefined;
+type EntityTypes = { [key: string]: Readonly<EntityPropType> };
 
 // biome-ignore lint/suspicious/noExplicitAny:
-export abstract class Entity<Args extends EntityArg[] = any> {
-  protected constructor() {}
+export abstract class Entity<Props extends EntityTypes = any> {
+  protected constructor(protected props: Props) {
+    Object.freeze(this.props);
+  }
+
+  public get<Key extends keyof Props>(key: Key): Props[Key] {
+    return this.props[key];
+  }
 
   protected static _create<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(...args: Args): Instance {
+    Props extends EntityTypes,
+    Instance extends Entity<Props>,
+  >(props: Props): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
-    const instance = Reflect.construct(this, args) as Instance;
+    const instance = Reflect.construct(this, [props]) as Instance;
     instance.validate();
     return instance;
   }
 
   protected static _reconstruct<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(...args: Args): Instance {
+    Props extends EntityTypes,
+    Instance extends Entity<Props>,
+  >(props: Props): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
-    return Reflect.construct(this, args) as Instance;
+    return Reflect.construct(this, [props]) as Instance;
   }
 
   protected static _update<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(target: Instance, ...args: Args): Instance {
+    Props extends EntityTypes,
+    Instance extends Entity<Props>,
+  >(target: Entity<Props>, props: Partial<Props>): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
-    const instance = Reflect.construct(this, args) as Instance;
+    const instance = Reflect.construct(this, [
+      { ...target.props, ...props },
+    ]) as Instance;
     instance.validate(target);
     return instance;
   }
 
-  public abstract equals(other: Entity<Args>): boolean;
+  public abstract equals(other: Entity<Props>): boolean;
 
-  public getErrors(prev?: Entity<Args>): ValidationErrors {
-    return Object.keys(this).reduce((acc, key) => {
-      // biome-ignore lint/suspicious/noExplicitAny:
-      const member = this[key as keyof Entity] as any;
+  public getErrors(prev?: Entity<Props>): ValidationErrors {
+    return Object.keys(this.props).reduce((acc, key) => {
+      const member = this.props[key];
       const prevValue = prev
         ? // biome-ignore lint/suspicious/noExplicitAny:
           ((prev[key as keyof Entity] as any) ?? undefined)
@@ -93,7 +106,7 @@ export abstract class Entity<Args extends EntityArg[] = any> {
   }
 
   // biome-ignore lint/suspicious/noConfusingVoidType:
-  private validate(prev?: Entity<Args>): void | never {
+  private validate(prev?: Entity<Props>): void | never {
     const errors = this.getErrors(prev);
     if (Object.keys(errors).length) {
       throw new ValidationException(errors);
