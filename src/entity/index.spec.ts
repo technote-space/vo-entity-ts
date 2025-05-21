@@ -16,10 +16,7 @@ export class TestText extends Text {
 
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestEntity extends Entity {
-  /**
-   * @deprecated create or reconstruct 経由で生成
-   */
-  public constructor(
+  protected constructor(
     public readonly text1: Text,
     public readonly text2: Text,
     public readonly text3?: Text,
@@ -41,7 +38,7 @@ export class TestEntity extends Entity {
     return TestEntity._reconstruct(text1, text2, text3, text4);
   }
 
-  public update({ text3, text4 }: { text3?: Text; text4?: Text }) {
+  public update({ text3, text4 }: { text3?: Text; text4?: Text }): TestEntity {
     return TestEntity._update(this, this.text1, this.text2, text3, text4);
   }
 
@@ -52,10 +49,7 @@ export class TestEntity extends Entity {
 
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestEntityWithEntity extends Entity {
-  /**
-   * @deprecated create or reconstruct 経由で生成
-   */
-  public constructor(
+  protected constructor(
     public readonly text: Text,
     public readonly entity: TestEntity,
   ) {
@@ -87,18 +81,6 @@ export class TestEntityWithEntity extends Entity {
 }
 
 describe('Entity', () => {
-  it('should throw error if call constructor directory', () => {
-    expect(
-      () =>
-        new TestEntity(
-          new TestText(1),
-          new TestText(2),
-          new TestText(3),
-          new TestText(4),
-        ),
-    ).toThrow();
-  });
-
   describe('equals', () => {
     it('should return true', () => {
       expect(

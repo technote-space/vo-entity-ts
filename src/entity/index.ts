@@ -1,4 +1,3 @@
-import { InvalidUsage } from '../exceptions/invalidUsage.js';
 import type { ValidationErrors } from '../exceptions/validation.js';
 import { ValidationException } from '../exceptions/validation.js';
 import type { ValidationError } from '../valueObject/index.js';
@@ -8,62 +7,36 @@ import { Collection } from './collection.js';
 // biome-ignore lint/suspicious/noExplicitAny:
 type EntityArg = ValueObject<any, any> | Entity | Collection<any> | undefined;
 
-type Constructor<
-  Args extends EntityArg[],
-  Instance extends Entity<Args>,
-> = new (...args: Args) => Instance;
-
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Args extends EntityArg[] = any> {
-  private static _isCreating = false;
-
-  protected constructor() {
-    if (!Entity._isCreating) {
-      throw new InvalidUsage();
-    }
-  }
+  protected constructor() {}
 
   protected static _create<
     Args extends EntityArg[],
     Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      const instance = new this(...args);
-      instance.validate();
-      return instance;
-    } finally {
-      Entity._isCreating = false;
-    }
+  >(...args: Args): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    const instance = Reflect.construct(this, args) as Instance;
+    instance.validate();
+    return instance;
   }
 
   protected static _reconstruct<
     Args extends EntityArg[],
     Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      return new this(...args);
-    } finally {
-      Entity._isCreating = false;
-    }
+  >(...args: Args): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    return Reflect.construct(this, args) as Instance;
   }
 
   protected static _update<
     Args extends EntityArg[],
     Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, target: Entity<Args>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      const instance = new this(...args);
-      instance.validate(target);
-      return instance;
-    } finally {
-      Entity._isCreating = false;
-    }
+  >(target: Instance, ...args: Args): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    const instance = Reflect.construct(this, args) as Instance;
+    instance.validate(target);
+    return instance;
   }
 
   public abstract equals(other: Entity<Args>): boolean;
