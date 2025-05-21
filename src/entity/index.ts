@@ -89,14 +89,14 @@ export abstract class Entity<Args extends EntityArg[] = any> {
       }
 
       if (member && member instanceof Entity) {
-        const errors: ValidationErrors | undefined =
-          member.getErrors(prevValue);
-        if (errors) {
-          return Object.entries(errors).reduce((acc, [key, value]) => {
-            acc[key] = [...new Set([...(acc[key] ?? []), ...value])];
-            return acc;
-          }, acc);
-        }
+        const name = key.replace(/^_/, '');
+        const errors: ValidationErrors = member.getErrors(prevValue);
+        return Object.entries(errors).reduce((acc, [key, value]) => {
+          acc[`${name}.${key}`] = [
+            ...new Set([...(acc[`${name}.${key}`] ?? []), ...value]),
+          ];
+          return acc;
+        }, acc);
       }
 
       if (member && member instanceof ValueObject) {
