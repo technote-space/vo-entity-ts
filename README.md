@@ -156,19 +156,16 @@ Entity は識別子を持ち、ライフサイクルを通じて同一性を維�
 import { Entity, Text } from 'vo-entity-ts';
 
 class User extends Entity {
-  /**
-   * @deprecated create または reconstruct 経由で生成してください
-   */
-  public constructor(
-    public readonly name: UserName,
-    public readonly email: UserEmail,
-    public readonly status?: UserStatus,
-  ) {
-    super();
+  protected constructor(props: {
+    name: UserName;
+    email: UserEmail;
+    status?: UserStatus;
+  }) {
+    super(props);
   }
 
   public static create(name: UserName, email: UserEmail): User {
-    return User._create(name, email);
+    return User._create({ name, email });
   }
 
   public static reconstruct(
@@ -176,15 +173,15 @@ class User extends Entity {
     email: UserEmail,
     status?: UserStatus,
   ): User {
-    return User._reconstruct(name, email, status);
+    return User._reconstruct({ name, email, status });
   }
 
   public update({ status }: { status?: UserStatus }): User {
-    return User._update(this, this.name, this.email, status);
+    return User._update(this, { status });
   }
 
   public equals(other: User): boolean {
-    return this.email.equals(other.email);
+    return this.get('email').equals(other.get('email'));
   }
 }
 
@@ -202,6 +199,11 @@ const reconstructedUser = User.reconstruct(name, email, status);
 const newStatus = new UserStatus('inactive');
 const updatedUser = user.update({ status: newStatus });
 
+// プロパティの取得
+user.get('name').value; // 'John Doe'
+user.get('email').value; // 'john@example.com'
+user.get('status')?.value; // undefined
+
 // 比較
 user.equals(updatedUser); // true（email が同じため）
 user.equals(User.create(new UserName('Jane Doe'), new UserEmail('jane@example.com'))); // false
@@ -218,6 +220,40 @@ try {
     // {
     //   name: ['3文字より長く入力してください'],
     //   email: ['有効なメールアドレスを指定してください']
+    // }
+  }
+}
+
+// ネストされたエンティティのバリデーション
+class UserProfile extends Entity {
+  protected constructor(props: {
+    user: User;
+    bio: Text;
+  }) {
+    super(props);
+  }
+
+  public static create(user: User, bio: Text): UserProfile {
+    return UserProfile._create({ user, bio });
+  }
+
+  public equals(other: UserProfile): boolean {
+    return this.get('user').equals(other.get('user'));
+  }
+}
+
+// ネストされたエンティティのバリデーションエラー
+try {
+  UserProfile.create(
+    User.create(new UserName('Jo'), new UserEmail('invalid-email')),
+    new Text('Bio')
+  );
+} catch (error) {
+  if (error instanceof ValidationException) {
+    console.log(error.errors);
+    // {
+    //   'user.name': ['3文字より長く入力してください'],
+    //   'user.email': ['有効なメールアドレスを指定してください']
     // }
   }
 }
