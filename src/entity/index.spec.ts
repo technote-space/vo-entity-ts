@@ -225,11 +225,14 @@ describe('Entity', () => {
   describe('Entity with Entity argument', () => {
     it('should create entity with entity argument', () => {
       const text = new TestText(1);
-      const entity = TestEntity.create(new TestText(1), new TestText('1'));
+      const entity = TestEntity.reconstruct(new TestText(1), new TestText('1'));
       const result = TestEntityWithEntity.create(text, entity);
 
-      expect(result.text).toBe(text);
-      expect(result.entity).toBe(entity);
+      expect(result.text.value).toBe('1');
+      expect(result.entity.text1.value).toBe('1');
+      expect(result.entity.text2.value).toBe('1');
+      expect(result.entity.text3?.value).toBeUndefined();
+      expect(result.entity.text4?.value).toBeUndefined();
     });
 
     it('should reconstruct entity with entity argument', () => {
@@ -242,8 +245,11 @@ describe('Entity', () => {
       );
       const result = TestEntityWithEntity.reconstruct(text, entity);
 
-      expect(result.text).toBe(text);
-      expect(result.entity).toBe(entity);
+      expect(result.text.value).toBe('1');
+      expect(result.entity.text1.value).toBe('1');
+      expect(result.entity.text2.value).toBe('1');
+      expect(result.entity.text3?.value).toBe('3');
+      expect(result.entity.text4?.value).toBe('4');
     });
 
     it('should update entity with entity argument', () => {
@@ -255,8 +261,11 @@ describe('Entity', () => {
       const newEntity = TestEntity.create(new TestText(2), new TestText('2'));
       const result = test.update({ text: newText, entity: newEntity });
 
-      expect(result.text).toBe(newText);
-      expect(result.entity).toBe(newEntity);
+      expect(result.text.value).toBe('2');
+      expect(result.entity.text1.value).toBe('2');
+      expect(result.entity.text2.value).toBe('2');
+      expect(result.entity.text3?.value).toBeUndefined();
+      expect(result.entity.text4?.value).toBeUndefined();
     });
 
     it('should validate nested entity errors', () => {
@@ -264,7 +273,7 @@ describe('Entity', () => {
       try {
         TestEntityWithEntity.create(
           new TestText(1),
-          TestEntity.create(new TestText(1), new TestText('')),
+          TestEntity.reconstruct(new TestText(1), new TestText('')),
         );
       } catch (e) {
         error = e as ValidationException;
@@ -273,7 +282,7 @@ describe('Entity', () => {
       expect(error).not.toBeUndefined();
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
-        text2: ['値を指定してください'],
+        'entity.text2': ['値を指定してください'],
       });
     });
 
@@ -285,7 +294,7 @@ describe('Entity', () => {
       let error: ValidationException | undefined;
       try {
         test.update({
-          entity: TestEntity.create(new TestText(1), new TestText('')),
+          entity: TestEntity.reconstruct(new TestText(1), new TestText('')),
         });
       } catch (e) {
         error = e as ValidationException;
@@ -294,7 +303,7 @@ describe('Entity', () => {
       expect(error).not.toBeUndefined();
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
-        text2: ['値を指定してください'],
+        'entity.text2': ['値を指定してください'],
       });
     });
   });
