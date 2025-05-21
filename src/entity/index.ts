@@ -1,77 +1,64 @@
-import { InvalidUsage } from '../exceptions/invalidUsage.js';
 import type { ValidationErrors } from '../exceptions/validation.js';
 import { ValidationException } from '../exceptions/validation.js';
 import type { ValidationError } from '../valueObject/index.js';
 import { ValueObject } from '../valueObject/index.js';
 import { Collection } from './collection.js';
 
+type EntityPropType =
+  // biome-ignore lint/suspicious/noExplicitAny:
+  | ValueObject<any, any>
+  | Entity
+  // biome-ignore lint/suspicious/noExplicitAny:
+  | Collection<any>
+  | undefined;
+type EntityTypes = { [key: string]: Readonly<EntityPropType> };
+type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
+  ? Props
+  : never;
+
 // biome-ignore lint/suspicious/noExplicitAny:
-type EntityArg = ValueObject<any, any> | Entity | Collection<any> | undefined;
-
-type Constructor<
-  Args extends EntityArg[],
-  Instance extends Entity<Args>,
-> = new (...args: Args) => Instance;
-
-// biome-ignore lint/suspicious/noExplicitAny:
-export abstract class Entity<Args extends EntityArg[] = any> {
-  private static _isCreating = false;
-
-  protected constructor() {
-    if (!Entity._isCreating) {
-      throw new InvalidUsage();
-    }
+export abstract class Entity<Props extends EntityTypes = any> {
+  protected constructor(protected props: Props) {
+    Object.freeze(this.props);
   }
 
-  protected static _create<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      const instance = new this(...args);
-      instance.validate();
-      return instance;
-    } finally {
-      Entity._isCreating = false;
-    }
+  public get<Key extends keyof Props>(key: Key): Props[Key] {
+    return this.props[key];
   }
 
-  protected static _reconstruct<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      return new this(...args);
-    } finally {
-      Entity._isCreating = false;
-    }
+  protected static _create<Instance extends Entity>(
+    props: InferProps<Instance>,
+  ): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    const instance = Reflect.construct(this, [props]) as Instance;
+    instance.validate();
+    return instance;
   }
 
-  protected static _update<
-    Args extends EntityArg[],
-    Instance extends Entity<Args>,
-  >(this: Constructor<Args, Instance>, target: Entity<Args>, ...args: Args) {
-    try {
-      Entity._isCreating = true;
-      // biome-ignore lint/complexity/noThisInStatic:
-      const instance = new this(...args);
-      instance.validate(target);
-      return instance;
-    } finally {
-      Entity._isCreating = false;
-    }
+  protected static _reconstruct<Instance extends Entity>(
+    props: InferProps<Instance>,
+  ): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    return Reflect.construct(this, [props]) as Instance;
   }
 
-  public abstract equals(other: Entity<Args>): boolean;
+  protected static _update<Instance extends Entity>(
+    target: Entity<InferProps<Instance>>,
+    props: Partial<InferProps<Instance>>,
+  ): Instance {
+    // biome-ignore lint/complexity/noThisInStatic:
+    const instance = Reflect.construct(this, [
+      { ...target.props, ...props },
+    ]) as Instance;
+    instance.validate(target);
+    return instance;
+  }
 
-  public getErrors(prev?: Entity<Args>): ValidationErrors {
-    return Object.keys(this).reduce((acc, key) => {
-      // biome-ignore lint/suspicious/noExplicitAny:
-      const member = this[key as keyof Entity] as any;
+  public abstract equals(other: Entity<Props>): boolean;
+
+  public getErrors(prev?: Entity<Props>): ValidationErrors {
+    return Object.keys(this.props).reduce((acc, key) => {
+      const member = this.props[key];
       const prevValue = prev
         ? // biome-ignore lint/suspicious/noExplicitAny:
           ((prev[key as keyof Entity] as any) ?? undefined)
@@ -120,7 +107,7 @@ export abstract class Entity<Args extends EntityArg[] = any> {
   }
 
   // biome-ignore lint/suspicious/noConfusingVoidType:
-  private validate(prev?: Entity<Args>): void | never {
+  private validate(prev?: Entity<Props>): void | never {
     const errors = this.getErrors(prev);
     if (Object.keys(errors).length) {
       throw new ValidationException(errors);
