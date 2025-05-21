@@ -6,7 +6,7 @@ import { ValueObject } from '../valueObject/index.js';
 import { Collection } from './collection.js';
 
 // biome-ignore lint/suspicious/noExplicitAny:
-type EntityArg = ValueObject<any, any> | Collection<any> | undefined;
+type EntityArg = ValueObject<any, any> | Entity | Collection<any> | undefined;
 
 type Constructor<
   Args extends EntityArg[],
@@ -78,6 +78,17 @@ export abstract class Entity<Args extends EntityArg[] = any> {
         : undefined;
 
       if (member && member instanceof Collection) {
+        const errors: ValidationErrors | undefined =
+          member.getErrors(prevValue);
+        if (errors) {
+          return Object.entries(errors).reduce((acc, [key, value]) => {
+            acc[key] = [...new Set([...(acc[key] ?? []), ...value])];
+            return acc;
+          }, acc);
+        }
+      }
+
+      if (member && member instanceof Entity) {
         const errors: ValidationErrors | undefined =
           member.getErrors(prevValue);
         if (errors) {

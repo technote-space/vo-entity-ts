@@ -50,6 +50,42 @@ export class TestEntity extends Entity {
   }
 }
 
+// biome-ignore lint/suspicious/noExportsInTest:
+export class TestEntityWithEntity extends Entity {
+  /**
+   * @deprecated create or reconstruct 経由で生成
+   */
+  public constructor(
+    public readonly text: Text,
+    public readonly entity: TestEntity,
+  ) {
+    super();
+  }
+
+  public static create(text: Text, entity: TestEntity): TestEntityWithEntity {
+    return TestEntityWithEntity._create(text, entity);
+  }
+
+  public static reconstruct(
+    text: Text,
+    entity: TestEntity,
+  ): TestEntityWithEntity {
+    return TestEntityWithEntity._reconstruct(text, entity);
+  }
+
+  public update({ text, entity }: { text?: Text; entity?: TestEntity }) {
+    return TestEntityWithEntity._update(
+      this,
+      text ?? this.text,
+      entity ?? this.entity,
+    );
+  }
+
+  public equals(other: TestEntityWithEntity): boolean {
+    return this.text.equals(other.text) && this.entity.equals(other.entity);
+  }
+}
+
 describe('Entity', () => {
   it('should throw error if call constructor directory', () => {
     expect(
@@ -182,6 +218,83 @@ describe('Entity', () => {
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
         text4: ['5文字より短く入力してください'],
+      });
+    });
+  });
+
+  describe('Entity with Entity argument', () => {
+    it('should create entity with entity argument', () => {
+      const text = new TestText(1);
+      const entity = TestEntity.create(new TestText(1), new TestText('1'));
+      const result = TestEntityWithEntity.create(text, entity);
+
+      expect(result.text).toBe(text);
+      expect(result.entity).toBe(entity);
+    });
+
+    it('should reconstruct entity with entity argument', () => {
+      const text = new TestText(1);
+      const entity = TestEntity.reconstruct(
+        new TestText(1),
+        new TestText('1'),
+        new TestText(3),
+        new TestText(4),
+      );
+      const result = TestEntityWithEntity.reconstruct(text, entity);
+
+      expect(result.text).toBe(text);
+      expect(result.entity).toBe(entity);
+    });
+
+    it('should update entity with entity argument', () => {
+      const text = new TestText(1);
+      const entity = TestEntity.create(new TestText(1), new TestText('1'));
+      const test = TestEntityWithEntity.create(text, entity);
+
+      const newText = new TestText(2);
+      const newEntity = TestEntity.create(new TestText(2), new TestText('2'));
+      const result = test.update({ text: newText, entity: newEntity });
+
+      expect(result.text).toBe(newText);
+      expect(result.entity).toBe(newEntity);
+    });
+
+    it('should validate nested entity errors', () => {
+      let error: ValidationException | undefined;
+      try {
+        TestEntityWithEntity.create(
+          new TestText(1),
+          TestEntity.create(new TestText(1), new TestText('')),
+        );
+      } catch (e) {
+        error = e as ValidationException;
+      }
+
+      expect(error).not.toBeUndefined();
+      expect(error?.message).toBe('バリデーションエラーが発生しました');
+      expect(error?.errors).toEqual({
+        text2: ['値を指定してください'],
+      });
+    });
+
+    it('should validate nested entity errors on update', () => {
+      const text = new TestText(1);
+      const entity = TestEntity.create(new TestText(1), new TestText('1'));
+      const test = TestEntityWithEntity.create(text, entity);
+
+      let error: ValidationException | undefined;
+      try {
+        test.update({
+          entity: TestEntity.create(new TestText(1), new TestText('')),
+        });
+      } catch (e) {
+        error = e as ValidationException;
+      }
+
+      expect(error).not.toBeUndefined();
+      expect(error?.message).toBe('バリデーションエラーが発生しました');
+      expect(error?.errors).toEqual({
+        text2: ['値を指定してください'],
       });
     });
   });
