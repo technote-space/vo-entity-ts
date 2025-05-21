@@ -6,12 +6,15 @@ import { ValueObject } from '../valueObject/index.js';
 import { Collection } from './collection.js';
 
 // biome-ignore lint/suspicious/noExplicitAny:
-type Constructor<Args extends any[], Instance extends Entity<Args>> = new (
-  ...args: Args
-) => Instance;
+type EntityArg = ValueObject<any, any> | Collection<any> | undefined;
+
+type Constructor<
+  Args extends EntityArg[],
+  Instance extends Entity<Args>,
+> = new (...args: Args) => Instance;
 
 // biome-ignore lint/suspicious/noExplicitAny:
-export abstract class Entity<Args extends any[] = any> {
+export abstract class Entity<Args extends EntityArg[] = any> {
   private static _isCreating = false;
 
   protected constructor() {
@@ -20,11 +23,10 @@ export abstract class Entity<Args extends any[] = any> {
     }
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny:
-  protected static _create<Args extends any[], Instance extends Entity<Args>>(
-    this: Constructor<Args, Instance>,
-    ...args: Args
-  ) {
+  protected static _create<
+    Args extends EntityArg[],
+    Instance extends Entity<Args>,
+  >(this: Constructor<Args, Instance>, ...args: Args) {
     try {
       Entity._isCreating = true;
       // biome-ignore lint/complexity/noThisInStatic:
@@ -37,8 +39,7 @@ export abstract class Entity<Args extends any[] = any> {
   }
 
   protected static _reconstruct<
-    // biome-ignore lint/suspicious/noExplicitAny:
-    Args extends any[],
+    Args extends EntityArg[],
     Instance extends Entity<Args>,
   >(this: Constructor<Args, Instance>, ...args: Args) {
     try {
@@ -50,12 +51,10 @@ export abstract class Entity<Args extends any[] = any> {
     }
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny:
-  protected static _update<Args extends any[], Instance extends Entity<Args>>(
-    this: Constructor<Args, Instance>,
-    target: Entity<Args>,
-    ...args: Args
-  ) {
+  protected static _update<
+    Args extends EntityArg[],
+    Instance extends Entity<Args>,
+  >(this: Constructor<Args, Instance>, target: Entity<Args>, ...args: Args) {
     try {
       Entity._isCreating = true;
       // biome-ignore lint/complexity/noThisInStatic:
