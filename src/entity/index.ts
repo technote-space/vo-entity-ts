@@ -12,6 +12,9 @@ type EntityPropType =
   | Collection<any>
   | undefined;
 type EntityTypes = { [key: string]: Readonly<EntityPropType> };
+type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
+  ? Props
+  : never;
 
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Props extends EntityTypes = any> {
@@ -23,28 +26,26 @@ export abstract class Entity<Props extends EntityTypes = any> {
     return this.props[key];
   }
 
-  protected static _create<
-    Props extends EntityTypes,
-    Instance extends Entity<Props>,
-  >(props: Props): Instance {
+  protected static _create<Instance extends Entity>(
+    props: InferProps<Instance>,
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [props]) as Instance;
     instance.validate();
     return instance;
   }
 
-  protected static _reconstruct<
-    Props extends EntityTypes,
-    Instance extends Entity<Props>,
-  >(props: Props): Instance {
+  protected static _reconstruct<Instance extends Entity>(
+    props: InferProps<Instance>,
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
     return Reflect.construct(this, [props]) as Instance;
   }
 
-  protected static _update<
-    Props extends EntityTypes,
-    Instance extends Entity<Props>,
-  >(target: Entity<Props>, props: Partial<Props>): Instance {
+  protected static _update<Instance extends Entity>(
+    target: Entity<InferProps<Instance>>,
+    props: Partial<InferProps<Instance>>,
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [
       { ...target.props, ...props },
