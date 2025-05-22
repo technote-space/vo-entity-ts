@@ -6,7 +6,7 @@ export type ValidationError = {
   name: string;
   error: string;
 };
-export abstract class ValueObject<Input, Output, Inner = Output> {
+export abstract class ValueObject<Input, Output, Inner = Output, O = Output> {
   private _setInner = false;
   private _inner?: Inner;
   private _setOutput = false;
@@ -48,6 +48,10 @@ export abstract class ValueObject<Input, Output, Inner = Output> {
 
     // biome-ignore lint/style/noNonNullAssertion:
     return this._output!;
+  }
+
+  public get objectValue(): O {
+    return this.value as never;
   }
 
   public equals(value: this): boolean {

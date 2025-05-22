@@ -16,6 +16,20 @@ type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
   ? Props
   : never;
 
+type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
+  ? {
+      // biome-ignore lint/suspicious/noExplicitAny:
+      [K in keyof Props]: Props[K] extends ValueObject<any, any>
+        ? Props[K]['objectValue']
+        : Props[K] extends Entity
+          ? EntityObjectType<Props[K]>
+          : // biome-ignore lint/suspicious/noExplicitAny:
+            Props[K] extends Collection<any>
+            ? EntityObjectType<Props[K][number]>[]
+            : undefined;
+    }
+  : never;
+
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Props extends EntityTypes = any> {
   protected constructor(protected readonly props: Props) {
@@ -112,5 +126,29 @@ export abstract class Entity<Props extends EntityTypes = any> {
     if (Object.keys(errors).length) {
       throw new ValidationException(errors);
     }
+  }
+
+  public getProps(): Props {
+    return this.props;
+  }
+
+  public getObject(): EntityObjectType<Entity<Props>> {
+    return Object.fromEntries(
+      Object.entries(this.props).map(([key, value]) => {
+        if (value instanceof Collection) {
+          return [key, value.map((v) => v.getObject())];
+        }
+
+        if (value instanceof Entity) {
+          return [key, value.getObject()];
+        }
+
+        if (value instanceof ValueObject) {
+          return [key, value.objectValue];
+        }
+
+        return [key, undefined];
+      }),
+    ) as EntityObjectType<Entity<Props>>;
   }
 }
