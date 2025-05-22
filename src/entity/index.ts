@@ -133,24 +133,22 @@ export abstract class Entity<Props extends EntityTypes = any> {
   }
 
   public getObject(): EntityObjectType<Entity<Props>> {
-    return {
-      ...Object.fromEntries(
-        Object.entries(this.props).map(([key, value]) => {
-          if (value instanceof Collection) {
-            return [key, value.map((v) => v.getObject())];
-          }
+    return Object.fromEntries(
+      Object.entries(this.props).map(([key, value]) => {
+        if (value instanceof Collection) {
+          return [key, value.map((v) => v.getObject())];
+        }
 
-          if (value instanceof Entity) {
-            return [key, value.getObject()];
-          }
+        if (value instanceof Entity) {
+          return [key, value.getObject()];
+        }
 
-          if (value instanceof ValueObject) {
-            return [key, value.objectValue];
-          }
+        if (value instanceof ValueObject) {
+          return [key, value.objectValue];
+        }
 
-          return [key, undefined];
-        }),
-      ),
-    } as EntityObjectType<Entity<Props>>;
+        return [key, undefined];
+      }),
+    ) as EntityObjectType<Entity<Props>>;
   }
 }
