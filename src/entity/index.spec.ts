@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ValidationException } from '../exceptions/validation.js';
 import { Text } from '../valueObject/text.js';
+import { Collection } from './collection.js';
 import { Entity } from './index.js';
 
 // biome-ignore lint/suspicious/noExportsInTest:
@@ -15,7 +16,12 @@ export class TestText extends Text {
 }
 
 // biome-ignore lint/suspicious/noExportsInTest:
-export class TestEntity extends Entity {
+export class TestEntity extends Entity<{
+  text1: Text;
+  text2: Text;
+  text3?: Text;
+  text4?: Text;
+}> {
   protected constructor(props: {
     text1: Text;
     text2: Text;
@@ -286,6 +292,150 @@ describe('Entity', () => {
       expect(error?.errors).toEqual({
         'entity.text2': ['値を指定してください'],
       });
+    });
+  });
+});
+
+describe('getProps', () => {
+  it('should return all properties of the entity', () => {
+    const text1 = new TestText(1);
+    const text2 = new TestText('2');
+    const entity = TestEntity.create(text1, text2);
+    const props = entity.getProps();
+
+    expect(props.text1).toBe(text1);
+    expect(props.text2).toBe(text2);
+    expect(props.text3).toBeUndefined();
+    expect(props.text4).toBeUndefined();
+  });
+
+  it('should return properties including optional ones when provided', () => {
+    const text1 = new TestText(1);
+    const text2 = new TestText('2');
+    const text3 = new TestText(3);
+    const text4 = new TestText('4');
+    const entity = TestEntity.reconstruct(text1, text2, text3, text4);
+    const props = entity.getProps();
+
+    expect(props.text1).toBe(text1);
+    expect(props.text2).toBe(text2);
+    expect(props.text3).toBe(text3);
+    expect(props.text4).toBe(text4);
+  });
+
+  it('should return nested entity properties', () => {
+    const text = new TestText(1);
+    const nestedEntity = TestEntity.create(new TestText(2), new TestText('3'));
+    const entity = TestEntityWithEntity.create(text, nestedEntity);
+    const props = entity.getProps();
+
+    expect(props.text).toBe(text);
+    expect(props.entity).toBe(nestedEntity);
+  });
+});
+
+describe('getObject', () => {
+  it('should convert ValueObject properties to plain objects', () => {
+    const entity = TestEntity.create(new TestText(1), new TestText('2'));
+    const result = entity.getObject();
+
+    expect(result).toEqual({
+      text1: '1',
+      text2: '2',
+    });
+  });
+
+  it('should convert Entity properties to plain objects', () => {
+    const text = new TestText(1);
+    const entity = TestEntity.create(new TestText(1), new TestText('2'));
+    const entityWithEntity = TestEntityWithEntity.create(text, entity);
+    const result = entityWithEntity.getObject();
+
+    expect(result).toEqual({
+      text: '1',
+      entity: {
+        text1: '1',
+        text2: '2',
+      },
+    });
+  });
+
+  it('should convert Collection properties to plain objects', () => {
+    // Create a test collection class
+    class TestCollection extends Collection<TestEntity> {}
+
+    // Create a test entity with collection class
+    class TestEntityWithCollection extends Entity<{
+      text1: Text;
+      text2: Text;
+      tests: TestCollection;
+    }> {
+      protected constructor(props: {
+        text1: Text;
+        text2: Text;
+        tests: TestCollection;
+      }) {
+        super(props);
+      }
+
+      public static create(
+        text1: Text,
+        text2: Text,
+        tests: TestCollection,
+      ): TestEntityWithCollection {
+        return TestEntityWithCollection._create({ text1, text2, tests });
+      }
+
+      public equals(other: TestEntityWithCollection): boolean {
+        return this.get('text1').equals(other.get('text1'));
+      }
+    }
+
+    // Create a test collection
+    const collection = new TestCollection(
+      TestEntity.create(new TestText(1), new TestText('2')),
+      TestEntity.create(new TestText(3), new TestText('4')),
+    );
+
+    // Create an entity with a collection property
+    const entityWithCollection = TestEntityWithCollection.create(
+      new TestText(5),
+      new TestText('6'),
+      collection,
+    );
+
+    const result = entityWithCollection.getObject();
+
+    expect(result).toEqual({
+      text1: '5',
+      text2: '6',
+      tests: [
+        {
+          text1: '1',
+          text2: '2',
+        },
+        {
+          text1: '3',
+          text2: '4',
+        },
+      ],
+    });
+  });
+
+  it('should handle undefined properties', () => {
+    const entity = TestEntity.reconstruct(
+      new TestText(1),
+      new TestText('2'),
+      undefined,
+      undefined,
+    );
+    const result = entity.getObject();
+
+    expect(result).toEqual({
+      text1: '1',
+      text2: '2',
+      text3: undefined,
+      text4: undefined,
     });
   });
 });
