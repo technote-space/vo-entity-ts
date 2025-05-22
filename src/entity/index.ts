@@ -18,7 +18,7 @@ type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
 
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Props extends EntityTypes = any> {
-  protected constructor(protected props: Props) {
+  protected constructor(protected readonly props: Props) {
     Object.freeze(this.props);
   }
 
