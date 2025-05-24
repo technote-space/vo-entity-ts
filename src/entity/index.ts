@@ -15,7 +15,13 @@ type EntityTypes = { [key: string]: Readonly<EntityPropType> };
 type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
   ? Props
   : never;
-
+type EntityPropsType<Props extends EntityTypes> = {
+  [key in keyof Props]: Props[key] extends Entity
+    ? InferProps<Props[key]>
+    : Props[key] extends Collection<infer E>
+      ? InferProps<E>[]
+      : Props[key];
+};
 type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
   ? {
       // biome-ignore lint/suspicious/noExplicitAny:
@@ -128,8 +134,20 @@ export abstract class Entity<Props extends EntityTypes = any> {
     }
   }
 
-  public getProps(): Props {
-    return this.props;
+  public getProps(): EntityPropsType<Props> {
+    return Object.fromEntries(
+      Object.entries(this.props).map(([key, value]) => {
+        if (value instanceof Collection) {
+          return [key, value.map((v) => v.getProps())];
+        }
+
+        if (value instanceof Entity) {
+          return [key, value.getProps()];
+        }
+
+        return [key, value];
+      }),
+    ) as EntityPropsType<Props>;
   }
 
   public getObject(): EntityObjectType<Entity<Props>> {
