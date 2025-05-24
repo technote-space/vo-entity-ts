@@ -330,7 +330,69 @@ describe('getProps', () => {
     const props = entity.getProps();
 
     expect(props.text).toBe(text);
-    expect(props.entity).toBe(nestedEntity);
+    expect(props.entity.text1.value).toBe('2');
+    expect(props.entity.text2.value).toBe('3');
+    expect(props.entity.text3).toBeUndefined();
+    expect(props.entity.text4).toBeUndefined();
+  });
+
+  it("should return collection properties with each entity's props", () => {
+    // Create a test collection class
+    class TestCollection extends Collection<TestEntity> {}
+
+    // Create a test entity with collection class
+    class TestEntityWithCollection extends Entity<{
+      text1: Text;
+      text2: Text;
+      tests: TestCollection;
+    }> {
+      protected constructor(props: {
+        text1: Text;
+        text2: Text;
+        tests: TestCollection;
+      }) {
+        super(props);
+      }
+
+      public static create(
+        text1: Text,
+        text2: Text,
+        tests: TestCollection,
+      ): TestEntityWithCollection {
+        return TestEntityWithCollection._create({ text1, text2, tests });
+      }
+
+      public equals(other: TestEntityWithCollection): boolean {
+        return this.get('text1').equals(other.get('text1'));
+      }
+    }
+
+    // Create entities for the collection
+    const entity1 = TestEntity.create(new TestText(1), new TestText('2'));
+    const entity2 = TestEntity.create(new TestText(3), new TestText('4'));
+
+    // Create a test collection
+    const collection = new TestCollection(entity1, entity2);
+
+    // Create an entity with a collection property
+    const entityWithCollection = TestEntityWithCollection.create(
+      new TestText(5),
+      new TestText('6'),
+      collection,
+    );
+
+    const props = entityWithCollection.getProps();
+
+    expect(props.text1).toBe(entityWithCollection.get('text1'));
+    expect(props.text2).toBe(entityWithCollection.get('text2'));
+    expect(Array.isArray(props.tests)).toBe(true);
+    expect(props.tests.length).toBe(2);
+
+    // Check that each entity in the collection has its props returned
+    expect(props.tests[0]?.text1).toBe(entity1.get('text1'));
+    expect(props.tests[0]?.text2).toBe(entity1.get('text2'));
+    expect(props.tests[1]?.text1).toBe(entity2.get('text1'));
+    expect(props.tests[1]?.text2).toBe(entity2.get('text2'));
   });
 });
 
