@@ -150,6 +150,10 @@ new UserRole('invalid' as never).getErrors('role'); // [{ name: 'role', error: '
 
 Entity は識別子を持ち、ライフサイクルを通じて同一性を維持するオブジェクトを表現するための基本クラスです。
 
+Entity のプロパティへのアクセスは以下の2つの方法で行えます：
+1. `get` メソッドを使用: `entity.get('propertyName')`
+2. 直接プロパティとしてアクセス: `entity.propertyName`
+
 ### 使用例
 
 ```typescript
@@ -200,9 +204,15 @@ const newStatus = new UserStatus('inactive');
 const updatedUser = user.update({ status: newStatus });
 
 // プロパティの取得
+// get メソッドを使用
 user.get('name').value; // 'John Doe'
 user.get('email').value; // 'john@example.com'
 user.get('status')?.value; // undefined
+
+// 直接プロパティとしてアクセス（新機能）
+user.name.value; // 'John Doe'
+user.email.value; // 'john@example.com'
+user.status?.value; // undefined
 
 // 比較
 user.equals(updatedUser); // true（email が同じため）
