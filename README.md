@@ -169,7 +169,7 @@ class User extends Entity {
   }
 
   public static create(name: UserName, email: UserEmail): User {
-    return User._create({ name, email });
+    return User._create<User>({ name, email });
   }
 
   public static reconstruct(
@@ -177,11 +177,11 @@ class User extends Entity {
     email: UserEmail,
     status?: UserStatus,
   ): User {
-    return User._reconstruct({ name, email, status });
+    return User._reconstruct<User>({ name, email, status });
   }
 
   public update({ status }: { status?: UserStatus }): User {
-    return User._update(this, { status });
+    return User._update<User>(this, { status });
   }
 
   public equals(other: User): boolean {
