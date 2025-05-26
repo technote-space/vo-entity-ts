@@ -11,11 +11,11 @@ type EntityPropType =
   // biome-ignore lint/suspicious/noExplicitAny:
   | Collection<any>
   | undefined;
-type EntityTypes = { [key: string]: Readonly<EntityPropType> };
+type EntityPropsTypes = { [key: string]: Readonly<EntityPropType> };
 type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
   ? Props
   : never;
-type EntityPropsType<Props extends EntityTypes> = {
+type EntityPropsType<Props extends EntityPropsTypes> = {
   [key in keyof Props]: Props[key] extends Entity
     ? InferProps<Props[key]>
     : Props[key] extends Collection<infer E>
@@ -38,7 +38,7 @@ type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
 export type EntityInstanceType<E extends Entity> = E & InferProps<E>;
 
 // biome-ignore lint/suspicious/noExplicitAny:
-export abstract class Entity<Props extends EntityTypes = any> {
+export abstract class Entity<Props extends EntityPropsTypes = any> {
   protected constructor(protected readonly props: Props) {
     Object.freeze(this.props);
 
