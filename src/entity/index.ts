@@ -35,11 +35,24 @@ type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
             : undefined;
     }
   : never;
+export type EntityInstanceType<E extends Entity> = E & InferProps<E>;
 
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Props extends EntityTypes = any> {
   protected constructor(protected readonly props: Props) {
     Object.freeze(this.props);
+
+    // biome-ignore lint/correctness/noConstructorReturn:
+    return new Proxy(this, {
+      get(target, prop) {
+        // Handle property access for props
+        if (typeof prop === 'string' && prop in target.props) {
+          return target.get(prop as keyof Props);
+        }
+
+        return Reflect.get(target, prop);
+      },
+    });
   }
 
   public get<Key extends keyof Props>(key: Key): Props[Key] {
@@ -48,30 +61,30 @@ export abstract class Entity<Props extends EntityTypes = any> {
 
   protected static _create<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): Instance {
+  ): EntityInstanceType<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [props]) as Instance;
     instance.validate();
-    return instance;
+    return instance as EntityInstanceType<Instance>;
   }
 
   protected static _reconstruct<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): Instance {
+  ): EntityInstanceType<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
-    return Reflect.construct(this, [props]) as Instance;
+    return Reflect.construct(this, [props]) as EntityInstanceType<Instance>;
   }
 
   protected static _update<Instance extends Entity>(
     target: Entity<InferProps<Instance>>,
     props: Partial<InferProps<Instance>>,
-  ): Instance {
+  ): EntityInstanceType<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [
       { ...target.props, ...props },
     ]) as Instance;
     instance.validate(target);
-    return instance;
+    return instance as EntityInstanceType<Instance>;
   }
 
   public abstract equals(other: Entity<Props>): boolean;

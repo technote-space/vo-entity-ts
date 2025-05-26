@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ValidationException } from '../exceptions/validation.js';
 import { Text } from '../valueObject/text.js';
 import { Collection } from './collection.js';
-import { Entity } from './index.js';
+import { Entity, type EntityInstanceType } from './index.js';
 
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestText extends Text {
@@ -31,8 +31,8 @@ export class TestEntity extends Entity<{
     super(props);
   }
 
-  public static create(text1: Text, text2: Text): TestEntity {
-    return TestEntity._create({ text1, text2 });
+  public static create(text1: Text, text2: Text) {
+    return TestEntity._create<TestEntity>({ text1, text2 });
   }
 
   public static reconstruct(
@@ -40,12 +40,12 @@ export class TestEntity extends Entity<{
     text2: Text,
     text3?: Text,
     text4?: Text,
-  ): TestEntity {
-    return TestEntity._reconstruct({ text1, text2, text3, text4 });
+  ) {
+    return TestEntity._reconstruct<TestEntity>({ text1, text2, text3, text4 });
   }
 
-  public update({ text3, text4 }: { text3?: Text; text4?: Text }): TestEntity {
-    return TestEntity._update(this, { text3, text4 });
+  public update({ text3, text4 }: { text3?: Text; text4?: Text }) {
+    return TestEntity._update<TestEntity>(this, { text3, text4 });
   }
 
   public equals(other: TestEntity): boolean {
@@ -56,25 +56,37 @@ export class TestEntity extends Entity<{
 // biome-ignore lint/suspicious/noExportsInTest:
 export class TestEntityWithEntity extends Entity<{
   text: Text;
-  entity: TestEntity;
+  entity: EntityInstanceType<TestEntity>;
 }> {
-  protected constructor(props: { text: Text; entity: TestEntity }) {
+  protected constructor(props: {
+    text: Text;
+    entity: EntityInstanceType<TestEntity>;
+  }) {
     super(props);
   }
 
-  public static create(text: Text, entity: TestEntity): TestEntityWithEntity {
-    return TestEntityWithEntity._create({ text, entity });
+  public static create(text: Text, entity: EntityInstanceType<TestEntity>) {
+    return TestEntityWithEntity._create<TestEntityWithEntity>({ text, entity });
   }
 
   public static reconstruct(
     text: Text,
-    entity: TestEntity,
-  ): TestEntityWithEntity {
-    return TestEntityWithEntity._reconstruct({ text, entity });
+    entity: EntityInstanceType<TestEntity>,
+  ) {
+    return TestEntityWithEntity._reconstruct<TestEntityWithEntity>({
+      text,
+      entity,
+    });
   }
 
-  public update({ text, entity }: { text?: Text; entity?: TestEntity }) {
-    return TestEntityWithEntity._update(this, { text, entity });
+  public update({
+    text,
+    entity,
+  }: { text?: Text; entity?: EntityInstanceType<TestEntity> }) {
+    return TestEntityWithEntity._update<TestEntityWithEntity>(this, {
+      text,
+      entity,
+    });
   }
 
   public equals(other: TestEntityWithEntity): boolean {
@@ -186,6 +198,8 @@ describe('Entity', () => {
 
       expect(test.get('text3')?.value).toBe('1');
       expect(test.get('text4')?.value).toBe('abcde');
+      expect(test.text3?.value).toBe('1');
+      expect(test.text4?.value).toBe('abcde');
     });
 
     it('should throw error', () => {
@@ -220,6 +234,11 @@ describe('Entity', () => {
       expect(result.get('entity').get('text2').value).toBe('1');
       expect(result.get('entity').get('text3')?.value).toBeUndefined();
       expect(result.get('entity').get('text4')?.value).toBeUndefined();
+      expect(result.text.value).toBe('1');
+      expect(result.entity.text1.value).toBe('1');
+      expect(result.entity.text2.value).toBe('1');
+      expect(result.entity.text3?.value).toBeUndefined();
+      expect(result.entity.text4?.value).toBeUndefined();
     });
 
     it('should reconstruct entity with entity argument', () => {
@@ -237,6 +256,11 @@ describe('Entity', () => {
       expect(result.get('entity').get('text2').value).toBe('1');
       expect(result.get('entity').get('text3')?.value).toBe('3');
       expect(result.get('entity').get('text4')?.value).toBe('4');
+      expect(result.text.value).toBe('1');
+      expect(result.entity.text1.value).toBe('1');
+      expect(result.entity.text2.value).toBe('1');
+      expect(result.entity.text3?.value).toBe('3');
+      expect(result.entity.text4?.value).toBe('4');
     });
 
     it('should update entity with entity argument', () => {
@@ -253,6 +277,11 @@ describe('Entity', () => {
       expect(result.get('entity').get('text2').value).toBe('2');
       expect(result.get('entity').get('text3')?.value).toBeUndefined();
       expect(result.get('entity').get('text4')?.value).toBeUndefined();
+      expect(result.text.value).toBe('2');
+      expect(result.entity.text1.value).toBe('2');
+      expect(result.entity.text2.value).toBe('2');
+      expect(result.entity.text3?.value).toBeUndefined();
+      expect(result.entity.text4?.value).toBeUndefined();
     });
 
     it('should validate nested entity errors', () => {
@@ -359,7 +388,11 @@ describe('getProps', () => {
         text2: Text,
         tests: TestCollection,
       ): TestEntityWithCollection {
-        return TestEntityWithCollection._create({ text1, text2, tests });
+        return TestEntityWithCollection._create<TestEntityWithCollection>({
+          text1,
+          text2,
+          tests,
+        });
       }
 
       public equals(other: TestEntityWithCollection): boolean {
@@ -445,7 +478,11 @@ describe('getObject', () => {
         text2: Text,
         tests: TestCollection,
       ): TestEntityWithCollection {
-        return TestEntityWithCollection._create({ text1, text2, tests });
+        return TestEntityWithCollection._create<TestEntityWithCollection>({
+          text1,
+          text2,
+          tests,
+        });
       }
 
       public equals(other: TestEntityWithCollection): boolean {
