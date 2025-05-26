@@ -249,50 +249,16 @@ try {
     // }
   }
 }
-
-// ネストされたエンティティのバリデーション
-class UserProfile extends Entity {
-  protected constructor(props: {
-    user: User;
-    bio: Text;
-  }) {
-    super(props);
-  }
-
-  public static create(user: User, bio: Text): UserProfile {
-    return UserProfile._create({ user, bio });
-  }
-
-  public equals(other: UserProfile): boolean {
-    return this.get('user').equals(other.get('user'));
-  }
-}
-
-// ネストされたエンティティのバリデーションエラー
-try {
-  UserProfile.create(
-    User.create(new UserName('Jo'), new UserEmail('invalid-email')),
-    new Text('Bio')
-  );
-} catch (error) {
-  if (error instanceof ValidationException) {
-    console.log(error.errors);
-    // {
-    //   'user.name': ['3文字より長く入力してください'],
-    //   'user.email': ['有効なメールアドレスを指定してください']
-    // }
-  }
-}
 ```
 
 ## コレクション
 
-Entity のコレクションを扱うための `Collection` クラスが提供されています。
+ValueObject のコレクションを扱うための `Collection` クラスが提供されています。
 
 ```typescript
 import { Collection } from 'vo-entity-ts';
 
-class UserList extends Collection<User> {
+class UserEmails extends Collection<UserEmail> {
   // カスタムのコレクション実装
 }
 ```

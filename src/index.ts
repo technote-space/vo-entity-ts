@@ -9,7 +9,7 @@ export { Url } from './valueObject/url.js';
 export { Email } from './valueObject/email.js';
 
 export { Entity, type EntityInstanceType } from './entity/index.js';
-export { Collection } from './entity/collection.js';
+export { Collection } from './valueObject/collection.js';
 
 export { Exception } from './exceptions/exception.js';
 export {

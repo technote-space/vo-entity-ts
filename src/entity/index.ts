@@ -1,38 +1,29 @@
 import type { ValidationErrors } from '../exceptions/validation.js';
 import { ValidationException } from '../exceptions/validation.js';
+import { Collection } from '../valueObject/collection.js';
 import type { ValidationError } from '../valueObject/index.js';
 import { ValueObject } from '../valueObject/index.js';
-import { Collection } from './collection.js';
 
 type EntityPropType =
   // biome-ignore lint/suspicious/noExplicitAny:
-  | ValueObject<any, any>
-  | Entity
-  // biome-ignore lint/suspicious/noExplicitAny:
-  | Collection<any>
-  | undefined;
+  ValueObject<any, any> | Collection<ValueObject<any, any>> | undefined;
 type EntityPropsTypes = { [key: string]: Readonly<EntityPropType> };
 type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
   ? Props
   : never;
 type EntityPropsType<Props extends EntityPropsTypes> = {
-  [key in keyof Props]: Props[key] extends Entity
-    ? InferProps<Props[key]>
-    : Props[key] extends Collection<infer E>
-      ? InferProps<E>[]
-      : Props[key];
+  [key in keyof Props]: Props[key] extends Collection<infer V>
+    ? V[]
+    : Props[key];
 };
 type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
   ? {
       // biome-ignore lint/suspicious/noExplicitAny:
       [K in keyof Props]: Props[K] extends ValueObject<any, any>
         ? Props[K]['objectValue']
-        : Props[K] extends Entity
-          ? EntityObjectType<Props[K]>
-          : // biome-ignore lint/suspicious/noExplicitAny:
-            Props[K] extends Collection<any>
-            ? EntityObjectType<Props[K][number]>[]
-            : undefined;
+        : Props[K] extends Collection<infer V>
+          ? V['objectValue'][]
+          : undefined;
     }
   : never;
 export type EntityInstanceType<E extends Entity> = E & InferProps<E>;
@@ -92,38 +83,40 @@ export abstract class Entity<Props extends EntityPropsTypes = any> {
   public getErrors(prev?: Entity<Props>): ValidationErrors {
     return Object.keys(this.props).reduce((acc, key) => {
       const member = this.props[key];
-      const prevValue = prev
+      const prevValue: typeof member | undefined = prev
         ? // biome-ignore lint/suspicious/noExplicitAny:
           ((prev[key as keyof Entity] as any) ?? undefined)
         : undefined;
 
       if (member && member instanceof Collection) {
-        const errors: ValidationErrors | undefined =
-          member.getErrors(prevValue);
-        if (errors) {
-          return Object.entries(errors).reduce((acc, [key, value]) => {
-            acc[key] = [...new Set([...(acc[key] ?? []), ...value])];
+        const name = key.replace(/^_/, '');
+        const errors: ValidationError[] = member
+          .map((v, index) =>
+            v.getErrors(
+              `${name}[${index}]`,
+              // biome-ignore lint/suspicious/noExplicitAny:
+              (prevValue as Collection<ValueObject<any, any>>)?.find((p) =>
+                p.equals(v),
+              ),
+            ),
+          )
+          .filter((e): e is ValidationError[] => !!e)
+          .flat();
+        if (errors.length) {
+          return errors.reduce((acc, error) => {
+            acc[error.name] = [
+              ...new Set([...(acc[error.name] ?? []), error.error]),
+            ];
             return acc;
           }, acc);
         }
-      }
-
-      if (member && member instanceof Entity) {
-        const name = key.replace(/^_/, '');
-        const errors: ValidationErrors = member.getErrors(prevValue);
-        return Object.entries(errors).reduce((acc, [key, value]) => {
-          acc[`${name}.${key}`] = [
-            ...new Set([...(acc[`${name}.${key}`] ?? []), ...value]),
-          ];
-          return acc;
-        }, acc);
       }
 
       if (member && member instanceof ValueObject) {
         const name = key.replace(/^_/, '');
         const errors: ValidationError[] | undefined = member.getErrors(
           name,
-          prevValue,
+          prevValue as typeof member,
         );
         if (errors?.length) {
           return errors.reduce((acc, error) => {
@@ -151,11 +144,8 @@ export abstract class Entity<Props extends EntityPropsTypes = any> {
     return Object.fromEntries(
       Object.entries(this.props).map(([key, value]) => {
         if (value instanceof Collection) {
-          return [key, value.map((v) => v.getProps())];
-        }
-
-        if (value instanceof Entity) {
-          return [key, value.getProps()];
+          // biome-ignore lint/suspicious/noExplicitAny:
+          return [key, value as Collection<ValueObject<any, any>>];
         }
 
         return [key, value];
@@ -167,11 +157,13 @@ export abstract class Entity<Props extends EntityPropsTypes = any> {
     return Object.fromEntries(
       Object.entries(this.props).map(([key, value]) => {
         if (value instanceof Collection) {
-          return [key, value.map((v) => v.getObject())];
-        }
-
-        if (value instanceof Entity) {
-          return [key, value.getObject()];
+          return [
+            key,
+            // biome-ignore lint/suspicious/noExplicitAny:
+            (value as Collection<ValueObject<any, any>>).map(
+              (v) => v.objectValue,
+            ),
+          ];
         }
 
         if (value instanceof ValueObject) {
