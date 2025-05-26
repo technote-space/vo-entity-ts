@@ -154,6 +154,22 @@ Entity のプロパティへのアクセスは以下の2つの方法で行えま
 1. `get` メソッドを使用: `entity.get('propertyName')`
 2. 直接プロパティとしてアクセス: `entity.propertyName`
 
+Entity を実装する際は、`_create`、`_reconstruct`、`_update` メソッドに対して、実装する Entity の型（例：`User`）をジェネリクスの型パラメータとして渡すことが重要です：
+```typescript
+// 正しい使用法
+public static create(...): User {
+  return User._create<User>({ ... });
+}
+
+public static reconstruct(...): User {
+  return User._reconstruct<User>({ ... });
+}
+
+public update(...): User {
+  return User._update<User>(this, { ... });
+}
+```
+
 ### 使用例
 
 ```typescript
