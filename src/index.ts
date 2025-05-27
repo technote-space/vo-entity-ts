@@ -3,6 +3,7 @@ export { DateObject } from './valueObject/date.js';
 export { Flags } from './valueObject/flags.js';
 export { Float } from './valueObject/float.js';
 export { Int } from './valueObject/int.js';
+export { ObjectValue } from './valueObject/object.js';
 export { StringId } from './valueObject/stringId.js';
 export { Text } from './valueObject/text.js';
 export { Url } from './valueObject/url.js';

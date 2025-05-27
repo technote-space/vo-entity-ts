@@ -55,6 +55,7 @@ Value Object は不変な値オブジェクトを表現するための基本ク�
 - `Flags`: フラグを表現する Value Object
 - `Float`: 浮動小数点数を表現する Value Object
 - `Int`: 整数を表現する Value Object
+- `ObjectValue`: オブジェクトを表現する Value Object
 - `StringId`: 文字列IDを表現する Value Object
 - `Text`: テキストを表現する Value Object
 - `Url`: URLを表現する Value Object
@@ -63,7 +64,7 @@ Value Object は不変な値オブジェクトを表現するための基本ク�
 ### 使用例
 
 ```typescript
-import { Text, Email } from 'vo-entity-ts';
+import { Text, Email, ObjectValue } from 'vo-entity-ts';
 
 class UserName extends Text {
   protected get symbol() {
@@ -144,6 +145,100 @@ nullStatus.equals(new UserStatus(null)); // true
 // バリデーション
 role.getErrors('role'); // undefined
 new UserRole('invalid' as never).getErrors('role'); // [{ name: 'role', error: '定義されていないフラグです: invalid' }]
+```
+
+#### ObjectValue の使用例
+
+```typescript
+import { ObjectValue, type ValidationError } from 'vo-entity-ts';
+
+interface UserProfile {
+  name: string;
+  age: number;
+  email?: string;
+}
+
+class UserProfileValue extends ObjectValue<UserProfile> {
+  protected get symbol() {
+    return Symbol();
+  }
+
+  protected override getRequiredKeys(): (keyof UserProfile)[] {
+    return ['name', 'age'];
+  }
+
+  protected override validateValue(value: UserProfile): ValidationError[] {
+    const errors: ValidationError[] = [];
+    
+    if (value.age < 0) {
+      errors.push({ name: 'age', error: '年齢は0以上である必要があります' });
+    }
+    
+    if (value.age > 150) {
+      errors.push({ name: 'age', error: '年齢は150以下である必要があります' });
+    }
+    
+    if (value.name.length === 0) {
+      errors.push({ name: 'name', error: '名前は必須です' });
+    }
+    
+    return errors;
+  }
+}
+
+// Nullable な ObjectValue
+class NullableUserProfileValue extends ObjectValue<UserProfile, true> {
+  protected get symbol() {
+    return Symbol();
+  }
+}
+
+// 使用例
+const profile = new UserProfileValue({
+  name: 'John Doe',
+  age: 30,
+  email: 'john@example.com'
+});
+
+const nullableProfile = new NullableUserProfileValue(null);
+
+// 値の取得（ディープクローンで不変性を保証）
+profile.value; // { name: 'John Doe', age: 30, email: 'john@example.com' }
+nullableProfile.value; // null
+
+// バリデーション
+profile.getErrors('profile'); // undefined（エラーなし）
+
+const invalidProfile = new UserProfileValue({
+  name: '',
+  age: -5
+});
+invalidProfile.getErrors('profile');
+// [
+//   { name: 'profile.age', error: '年齢は0以上である必要があります' },
+//   { name: 'profile.name', error: '名前は必須です' }
+// ]
+
+// 必須キーの不足
+const incompleteProfile = new UserProfileValue({ name: 'John' } as UserProfile);
+incompleteProfile.getErrors('profile');
+// [{ name: 'profile.age', error: '値を指定してください' }]
+
+// 比較
+const profile1 = new UserProfileValue({ name: 'John', age: 30 });
+const profile2 = new UserProfileValue({ name: 'John', age: 30 });
+const profile3 = new UserProfileValue({ name: 'Jane', age: 25 });
+
+profile1.equals(profile2); // true
+profile1.equals(profile3); // false
+
+// 不変性の確認
+const originalData = { name: 'John', age: 30 };
+const profileObj = new UserProfileValue(originalData);
+const output = profileObj.value;
+
+originalData.name = 'Jane'; // 元データを変更
+output.name; // 'John' (出力は変更されない)
 ```
 
 ## Entity
