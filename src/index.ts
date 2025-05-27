@@ -1,4 +1,8 @@
-export { ValueObject } from './valueObject/index.js';
+export {
+  ValueObject,
+  type ValidationError,
+  type NullableOrNot,
+} from './valueObject/index.js';
 export { DateObject } from './valueObject/date.js';
 export { Flags } from './valueObject/flags.js';
 export { Float } from './valueObject/float.js';
