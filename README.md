@@ -20,6 +20,7 @@
 - [特徴](#%E7%89%B9%E5%BE%B4)
 - [Value Object](#value-object)
   - [使用例](#%E4%BD%BF%E7%94%A8%E4%BE%8B)
+  - [その他の使用例](#%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E4%BD%BF%E7%94%A8%E4%BE%8B)
 - [Entity](#entity)
   - [使用例](#%E4%BD%BF%E7%94%A8%E4%BE%8B-1)
 - [コレクション](#%E3%82%B3%E3%83%AC%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3)
@@ -55,6 +56,8 @@ Value Object は不変な値オブジェクトを表現するための基本ク�
 - `Flags`: フラグを表現する Value Object
 - `Float`: 浮動小数点数を表現する Value Object
 - `Int`: 整数を表現する Value Object
+- `ObjectValue`: オブジェクトを表現する Value Object
+- `Phone`: 電話番号を表現する Value Object
 - `StringId`: 文字列IDを表現する Value Object
 - `Text`: テキストを表現する Value Object
 - `Url`: URLを表現する Value Object
@@ -63,7 +66,7 @@ Value Object は不変な値オブジェクトを表現するための基本ク�
 ### 使用例
 
 ```typescript
-import { Text, Email } from 'vo-entity-ts';
+import { Text, Email, ObjectValue } from 'vo-entity-ts';
 
 class UserName extends Text {
   protected get symbol() {
@@ -102,49 +105,25 @@ const name = name1.value;
 name = 'New Name'; // エラー: Cannot assign to 'name' because it is a read-only property
 ```
 
-#### Flags の使用例
+### その他の使用例
 
-```typescript
-import { Flags } from 'vo-entity-ts';
+各 Value Object のより詳細な使用例や実装パターンについては、以下のテストファイルを参照してください：
 
-// 通常のフラグ
-class UserRole extends Flags<'admin' | 'user' | 'guest'> {
-  protected get symbol() {
-    return Symbol();
-  }
+- **基本的な使用方法**: [`src/valueObject/index.spec.ts`](src/valueObject/index.spec.ts)
+- **Text**: [`src/valueObject/text.spec.ts`](src/valueObject/text.spec.ts)
+- **Email**: [`src/valueObject/email.test.ts`](src/valueObject/email.test.ts)
+- **Url**: [`src/valueObject/url.test.ts`](src/valueObject/url.test.ts)
+- **Int**: [`src/valueObject/int.spec.ts`](src/valueObject/int.spec.ts)
+- **Float**: [`src/valueObject/float.spec.ts`](src/valueObject/float.spec.ts)
+- **DateObject**: [`src/valueObject/date.spec.ts`](src/valueObject/date.spec.ts)
+- **Flags**: [`src/valueObject/flags.spec.ts`](src/valueObject/flags.spec.ts)
+- **StringId**: [`src/valueObject/stringId.spec.ts`](src/valueObject/stringId.spec.ts)
+- **ObjectValue**: [`src/valueObject/object.spec.ts`](src/valueObject/object.spec.ts)
+- **Phone**: [`src/valueObject/phone.spec.ts`](src/valueObject/phone.spec.ts)
+- **Collection**: [`src/valueObject/collection.spec.ts`](src/valueObject/collection.spec.ts)
+- **Entity**: [`src/entity/index.spec.ts`](src/entity/index.spec.ts)
 
-  public get flagTypes(): ('admin' | 'user' | 'guest')[] {
-    return ['admin', 'user', 'guest'];
-  }
-}
-
-// null を許容するフラグ
-class UserStatus extends Flags<'active' | 'inactive', true> {
-  protected get symbol() {
-    return Symbol();
-  }
-
-  public get flagTypes(): ('active' | 'inactive')[] {
-    return ['active', 'inactive'];
-  }
-}
-
-// 使用例
-const role = new UserRole('admin');
-const status = new UserStatus('active');
-const inactiveStatus = new UserStatus('inactive');
-const nullStatus = new UserStatus(null);
-
-// 比較
-role.equals(new UserRole('admin')); // true
-role.equals(new UserRole('user')); // false
-status.equals(inactiveStatus); // false
-nullStatus.equals(new UserStatus(null)); // true
-
-// バリデーション
-role.getErrors('role'); // undefined
-new UserRole('invalid' as never).getErrors('role'); // [{ name: 'role', error: '定義されていないフラグです: invalid' }]
-```
+これらのテストファイルには、実際の使用例、エラーハンドリング、エッジケースの処理方法などが含まれています。
 
 ## Entity
 
