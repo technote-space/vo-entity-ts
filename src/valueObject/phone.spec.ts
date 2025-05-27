@@ -29,15 +29,13 @@ class NullablePhone extends Phone<true> {
 }
 
 describe('Phone', () => {
-  it('should create valid phone number', () => {
-    const phone = new TestPhone('+1234567890');
-    expect(typeof phone.value).toBe('string');
-  });
-
-  it('should normalize phone number format', () => {
-    const phone = new TestPhone('+1 (234) 567-890');
-    expect(phone.value).toBe('+1234567890');
-  });
+  it.each([['+1234567890'], ['+1 (234) 567-890']])(
+    'should create valid phone number',
+    (value) => {
+      const phone = new TestPhone(value);
+      expect(phone.value).toBe(value);
+    },
+  );
 
   it('should validate empty phone number', () => {
     const phone = new TestPhone('');
@@ -71,6 +69,7 @@ describe('Phone', () => {
   it('should handle null values when nullable', () => {
     const phone = new NullablePhone(null);
     expect(phone.value).toBeNull();
+    expect(phone.normalized).toBeNull();
     expect(phone.getErrors('phone')).toBeUndefined();
   });
 
@@ -97,15 +96,16 @@ describe('Phone', () => {
 
   it('should normalize various phone number formats', () => {
     const formats = [
-      '+1 (234) 567-890',
-      '+1-234-567-890',
+      '+1 (234) 567-890 ',
+      ' +1-234-567-890',
       '+1 234 567 890',
       '+1(234)567890',
     ];
 
+    // biome-ignore lint/complexity/noForEach:
     formats.forEach((format) => {
       const phone = new TestPhone(format);
-      expect(phone.value).toBe('+1234567890');
+      expect(phone.normalized).toBe('+1234567890');
     });
   });
 });
