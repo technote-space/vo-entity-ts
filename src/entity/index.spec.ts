@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ValidationException } from '../exceptions/validation.js';
 import { Collection } from '../valueObject/collection.js';
+import type { ValidationError } from '../valueObject/index.js';
 import { Text } from '../valueObject/text.js';
 import { Entity } from './index.js';
 
@@ -11,6 +12,20 @@ class TestText extends Text {
 
   protected override getValidationMaxLength(): number | undefined {
     return 5;
+  }
+
+  public override getErrors(
+    name: string,
+    prev?: Readonly<Text>,
+  ): ValidationError[] | undefined {
+    const results = super.getErrors(name);
+    const errors = results || [];
+
+    if (prev && this.value === prev.value) {
+      errors.push({ name, error: '前回と同じ値は使用できません' });
+    }
+
+    return errors.length ? errors : undefined;
   }
 }
 
@@ -176,11 +191,9 @@ describe('Entity', () => {
 
       expect(test.get('text3')?.value).toBe('1');
       expect(test.get('text4')?.value).toBe('abcde');
-      expect(test.text3?.value).toBe('1');
-      expect(test.text4?.value).toBe('abcde');
-      expect(test.collection?.length).toBe(2);
-      expect(test.collection?.at(0)?.value).toBe('1');
-      expect(test.collection?.at(1)?.value).toBe('2');
+      expect(test.get('collection')?.length).toBe(2);
+      expect(test.get('collection')?.at(0)?.value).toBe('1');
+      expect(test.get('collection')?.at(1)?.value).toBe('2');
     });
 
     it('should throw error', () => {
@@ -208,8 +221,16 @@ describe('Entity', () => {
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
         text4: ['5文字より短く入力してください'],
+        'collection[0]': ['前回と同じ値は使用できません'],
         'collection[1]': ['5文字より短く入力してください'],
       });
+    });
+  });
+
+  describe('name', () => {
+    it('should return constructor name', () => {
+      const instance = TestEntity.create(new TestText(1), new TestText('1'));
+      expect(instance.constructor.name).toBe('TestEntity');
     });
   });
 });

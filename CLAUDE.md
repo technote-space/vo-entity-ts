@@ -46,7 +46,7 @@ Input → fromInput() → Inner → toOutput() → Output (cached & frozen)
 #### Entity Pattern
 - **Base class**: `Entity<Props>`
 - **Factory methods**: `_create()` (with validation), `_reconstruct()` (skip validation), `_update()` (partial update)
-- **Property access**: Both `entity.get('prop')` and direct `entity.prop` via Proxy
+- **Property access**: `entity.get('prop')`
 - **Identity-based equality**: Must implement `equals()` method
 
 ### Code Organization

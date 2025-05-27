@@ -129,10 +129,6 @@ name = 'New Name'; // エラー: Cannot assign to 'name' because it is a read-on
 
 Entity は識別子を持ち、ライフサイクルを通じて同一性を維持するオブジェクトを表現するための基本クラスです。
 
-Entity のプロパティへのアクセスは以下の2つの方法で行えます：
-1. `get` メソッドを使用: `entity.get('propertyName')`
-2. 直接プロパティとしてアクセス: `entity.propertyName`
-
 Entity を実装する際は、`_create`、`_reconstruct`、`_update` メソッドに対して、実装する Entity の型（例：`User`）をジェネリクスの型パラメータとして渡すことが重要です：
 ```typescript
 // 正しい使用法
@@ -199,15 +195,9 @@ const newStatus = new UserStatus('inactive');
 const updatedUser = user.update({ status: newStatus });
 
 // プロパティの取得
-// get メソッドを使用
 user.get('name').value; // 'John Doe'
 user.get('email').value; // 'john@example.com'
 user.get('status')?.value; // undefined
-
-// 直接プロパティとしてアクセス（新機能）
-user.name.value; // 'John Doe'
-user.email.value; // 'john@example.com'
-user.status?.value; // undefined
 
 // 比較
 user.equals(updatedUser); // true（email が同じため）

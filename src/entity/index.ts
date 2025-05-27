@@ -26,24 +26,11 @@ type EntityObject<E extends Entity> = E extends Entity<infer Props>
           : undefined;
     }
   : never;
-export type EntityInstance<E extends Entity> = E & InferProps<E>;
 
 // biome-ignore lint/suspicious/noExplicitAny:
 export abstract class Entity<Props extends EntityPropsType = any> {
   protected constructor(private readonly props: Props) {
     Object.freeze(this.props);
-
-    // biome-ignore lint/correctness/noConstructorReturn:
-    return new Proxy(this, {
-      get(target, prop) {
-        // Handle property access for props
-        if (typeof prop === 'string' && prop in target.props) {
-          return target.props[prop];
-        }
-
-        return Reflect.get(target, prop);
-      },
-    });
   }
 
   public get<Key extends keyof Props>(key: Key): Props[Key] {
@@ -52,41 +39,45 @@ export abstract class Entity<Props extends EntityPropsType = any> {
 
   protected static _create<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): EntityInstance<Instance> {
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [props]) as Instance;
     instance.validate();
-    return instance as EntityInstance<Instance>;
+    return instance;
   }
 
   protected static _reconstruct<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): EntityInstance<Instance> {
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
-    return Reflect.construct(this, [props]) as EntityInstance<Instance>;
+    return Reflect.construct(this, [props]) as Instance;
   }
 
   protected static _update<Instance extends Entity>(
     target: Entity<InferProps<Instance>>,
     props: Partial<InferProps<Instance>>,
-  ): EntityInstance<Instance> {
+  ): Instance {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [
       { ...target.props, ...props },
     ]) as Instance;
-    instance.validate(target);
-    return instance as EntityInstance<Instance>;
+    instance.validate(target, Object.keys(props));
+    return instance;
   }
 
   public abstract equals(other: Entity<Props>): boolean;
 
-  public getErrors(prev?: Entity<Props>): ValidationErrors {
+  public getErrors(
+    prev?: Entity<Props>,
+    targetKeys?: (keyof Props)[],
+  ): ValidationErrors {
     return Object.keys(this.props).reduce((acc, key) => {
       const member = this.props[key];
-      const prevValue: typeof member | undefined = prev
-        ? // biome-ignore lint/suspicious/noExplicitAny:
-          ((prev[key as keyof Entity] as any) ?? undefined)
-        : undefined;
+      const prevValue: typeof member | undefined =
+        prev && targetKeys?.includes(key)
+          ? // biome-ignore lint/suspicious/noExplicitAny:
+            ((prev.props[key as keyof Entity] as any) ?? undefined)
+          : undefined;
 
       if (member && member instanceof Collection) {
         const name = key.replace(/^_/, '');
@@ -95,9 +86,7 @@ export abstract class Entity<Props extends EntityPropsType = any> {
             v.getErrors(
               `${name}[${index}]`,
               // biome-ignore lint/suspicious/noExplicitAny:
-              (prevValue as Collection<ValueObject<any, any>>)?.find((p) =>
-                p.equals(v),
-              ),
+              (prevValue as Collection<ValueObject<any, any>>)?.at(index),
             ),
           )
           .filter((e): e is ValidationError[] => !!e)
@@ -132,9 +121,12 @@ export abstract class Entity<Props extends EntityPropsType = any> {
     }, {} as ValidationErrors);
   }
 
-  // biome-ignore lint/suspicious/noConfusingVoidType:
-  private validate(prev?: Entity<Props>): void | never {
-    const errors = this.getErrors(prev);
+  private validate(
+    prev?: Entity<Props>,
+    targetKeys?: (keyof Props)[],
+    // biome-ignore lint/suspicious/noConfusingVoidType:
+  ): void | never {
+    const errors = this.getErrors(prev, targetKeys);
     if (Object.keys(errors).length) {
       throw new ValidationException(errors);
     }
