@@ -18,8 +18,18 @@ export abstract class Phone<
       return null as NullableOrNot<string, Nullable>;
     }
 
+    // Keep original input as is
+    return input.trim();
+  }
+
+  public get normalized(): NullableOrNot<string, Nullable> {
+    const value = this.value;
+    if (value === null) {
+      return null as NullableOrNot<string, Nullable>;
+    }
+
     // Normalize phone number (remove spaces, dashes, parentheses)
-    return input.replace(/[\s\-()]/g, '') as NullableOrNot<string, Nullable>;
+    return value.replace(/[\s\-()]/g, '') as NullableOrNot<string, Nullable>;
   }
 
   protected getLocale():
