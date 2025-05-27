@@ -176,11 +176,9 @@ describe('Entity', () => {
 
       expect(test.get('text3')?.value).toBe('1');
       expect(test.get('text4')?.value).toBe('abcde');
-      expect(test.text3?.value).toBe('1');
-      expect(test.text4?.value).toBe('abcde');
-      expect(test.collection?.length).toBe(2);
-      expect(test.collection?.at(0)?.value).toBe('1');
-      expect(test.collection?.at(1)?.value).toBe('2');
+      expect(test.get('collection')?.length).toBe(2);
+      expect(test.get('collection')?.at(0)?.value).toBe('1');
+      expect(test.get('collection')?.at(1)?.value).toBe('2');
     });
 
     it('should throw error', () => {
@@ -210,6 +208,13 @@ describe('Entity', () => {
         text4: ['5文字より短く入力してください'],
         'collection[1]': ['5文字より短く入力してください'],
       });
+    });
+  });
+
+  describe('name', () => {
+    it('should return constructor name', () => {
+      const instance = TestEntity.create(new TestText(1), new TestText('1'));
+      expect(instance.constructor.name).toBe('TestEntity');
     });
   });
 });
