@@ -33,6 +33,7 @@ export abstract class ValueObject<Input, Output, Inner = Output, O = Output> {
     if (!this._setInner) {
       this._setInner = true;
       this._inner = this.fromInput();
+      Object.freeze(this._inner);
     }
 
     // biome-ignore lint/style/noNonNullAssertion:
