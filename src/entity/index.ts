@@ -61,19 +61,23 @@ export abstract class Entity<Props extends EntityPropsType = any> {
     const instance = Reflect.construct(this, [
       { ...target.props, ...props },
     ]) as Instance;
-    instance.validate(target);
+    instance.validate(target, Object.keys(props));
     return instance;
   }
 
   public abstract equals(other: Entity<Props>): boolean;
 
-  public getErrors(prev?: Entity<Props>): ValidationErrors {
+  public getErrors(
+    prev?: Entity<Props>,
+    targetKeys?: (keyof Props)[],
+  ): ValidationErrors {
     return Object.keys(this.props).reduce((acc, key) => {
       const member = this.props[key];
-      const prevValue: typeof member | undefined = prev
-        ? // biome-ignore lint/suspicious/noExplicitAny:
-          ((prev.props[key as keyof Entity] as any) ?? undefined)
-        : undefined;
+      const prevValue: typeof member | undefined =
+        prev && targetKeys?.includes(key)
+          ? // biome-ignore lint/suspicious/noExplicitAny:
+            ((prev.props[key as keyof Entity] as any) ?? undefined)
+          : undefined;
 
       if (member && member instanceof Collection) {
         const name = key.replace(/^_/, '');
@@ -117,9 +121,12 @@ export abstract class Entity<Props extends EntityPropsType = any> {
     }, {} as ValidationErrors);
   }
 
-  // biome-ignore lint/suspicious/noConfusingVoidType:
-  private validate(prev?: Entity<Props>): void | never {
-    const errors = this.getErrors(prev);
+  private validate(
+    prev?: Entity<Props>,
+    targetKeys?: (keyof Props)[],
+    // biome-ignore lint/suspicious/noConfusingVoidType:
+  ): void | never {
+    const errors = this.getErrors(prev, targetKeys);
     if (Object.keys(errors).length) {
       throw new ValidationException(errors);
     }

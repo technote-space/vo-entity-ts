@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ValidationException } from '../exceptions/validation.js';
 import { Collection } from '../valueObject/collection.js';
+import type { ValidationError } from '../valueObject/index.js';
 import { Text } from '../valueObject/text.js';
 import { Entity } from './index.js';
 
@@ -11,6 +12,20 @@ class TestText extends Text {
 
   protected override getValidationMaxLength(): number | undefined {
     return 5;
+  }
+
+  public override getErrors(
+    name: string,
+    prev?: Readonly<Text>,
+  ): ValidationError[] | undefined {
+    const results = super.getErrors(name);
+    const errors = results || [];
+
+    if (prev && this.value === prev.value) {
+      errors.push({ name, error: '前回と同じ値は使用できません' });
+    }
+
+    return errors.length ? errors : undefined;
   }
 }
 
@@ -206,6 +221,7 @@ describe('Entity', () => {
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
         text4: ['5文字より短く入力してください'],
+        'collection[0]': ['前回と同じ値は使用できません'],
         'collection[1]': ['5文字より短く入力してください'],
       });
     });
