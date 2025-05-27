@@ -72,7 +72,7 @@ export abstract class Entity<Props extends EntityPropsType = any> {
       const member = this.props[key];
       const prevValue: typeof member | undefined = prev
         ? // biome-ignore lint/suspicious/noExplicitAny:
-          ((prev[key as keyof Entity] as any) ?? undefined)
+          ((prev.props[key as keyof Entity] as any) ?? undefined)
         : undefined;
 
       if (member && member instanceof Collection) {
