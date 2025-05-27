@@ -103,6 +103,7 @@ describe('Phone', () => {
       '+1(234)567890',
     ];
 
+    // biome-ignore lint/complexity/noForEach:
     formats.forEach((format) => {
       const phone = new TestPhone(format);
       expect(phone.value).toBe('+1234567890');
