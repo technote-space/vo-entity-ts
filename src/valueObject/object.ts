@@ -19,16 +19,6 @@ export abstract class ObjectValue<
     return input;
   }
 
-  protected override toOutput(): NullableOrNot<T, Nullable> {
-    const inner = this.inner;
-    if (inner === null) {
-      return null as NullableOrNot<T, Nullable>;
-    }
-
-    // Deep clone to ensure immutability
-    return JSON.parse(JSON.stringify(inner)) as NullableOrNot<T, Nullable>;
-  }
-
   protected getRequiredKeys(): (keyof T)[] {
     return [];
   }

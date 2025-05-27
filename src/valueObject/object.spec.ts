@@ -91,17 +91,6 @@ describe('ObjectValue', () => {
     expect(obj1.compare(obj3)).not.toBe(0);
   });
 
-  it('should deep clone output to ensure immutability', () => {
-    const input = { name: 'John', age: 30, active: true };
-    const obj = new TestObjectValue(input);
-
-    const output = obj.value;
-    input.name = 'Jane';
-
-    expect(output.name).toBe('John');
-    expect(input.name).toBe('Jane');
-  });
-
   it('should handle comparison with null values', () => {
     const obj1 = new NullableTestObjectValue(null);
     const obj2 = new NullableTestObjectValue(null);
