@@ -82,9 +82,7 @@ export abstract class Entity<Props extends EntityPropsType = any> {
             v.getErrors(
               `${name}[${index}]`,
               // biome-ignore lint/suspicious/noExplicitAny:
-              (prevValue as Collection<ValueObject<any, any>>)?.find((p) =>
-                p.equals(v),
-              ),
+              (prevValue as Collection<ValueObject<any, any>>)?.at(index),
             ),
           )
           .filter((e): e is ValidationError[] => !!e)
