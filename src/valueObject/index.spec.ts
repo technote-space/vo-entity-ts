@@ -6,8 +6,8 @@ class Test extends ValueObject<number, number> {
     return Symbol();
   }
 
-  public compare(): number {
-    return 0;
+  public compare(other: this): number {
+    return this.value - other.value;
   }
 
   public getErrors(name: string): ValidationError[] | undefined {
@@ -81,5 +81,12 @@ describe('ValueObject', () => {
     expect(() => {
       test.value.test = 345;
     }).toThrow();
+  });
+
+  it('should return compare result', () => {
+    expect(new Test(0).equals(new Test(0))).toBe(true);
+    expect(new Test(0).equals(new Test(1))).toBe(false);
+    expect(new Test(0).equals(null)).toBe(false);
+    expect(new Test(0).equals(undefined)).toBe(false);
   });
 });

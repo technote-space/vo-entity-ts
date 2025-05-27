@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { ValidationException } from '../exceptions/validation.js';
+import { Collection } from '../valueObject/collection.js';
 import { Text } from '../valueObject/text.js';
-import { Collection } from './collection.js';
-import { Entity, type EntityInstanceType } from './index.js';
+import { Entity } from './index.js';
 
-// biome-ignore lint/suspicious/noExportsInTest:
-export class TestText extends Text {
+class TestText extends Text {
   protected get symbol() {
     return Symbol();
   }
@@ -15,24 +14,26 @@ export class TestText extends Text {
   }
 }
 
-// biome-ignore lint/suspicious/noExportsInTest:
-export class TestEntity extends Entity<{
+class TestTextCollection extends Collection<TestText> {}
+
+type TestEntityProps = {
   text1: Text;
   text2: Text;
   text3?: Text;
   text4?: Text;
-}> {
-  protected constructor(props: {
-    text1: Text;
-    text2: Text;
-    text3?: Text;
-    text4?: Text;
-  }) {
+  collection?: TestTextCollection;
+};
+class TestEntity extends Entity<TestEntityProps> {
+  protected constructor(props: TestEntityProps) {
     super(props);
   }
 
-  public static create(text1: Text, text2: Text) {
-    return TestEntity._create<TestEntity>({ text1, text2 });
+  public static create(
+    text1: Text,
+    text2: Text,
+    collection?: TestTextCollection,
+  ) {
+    return TestEntity._create<TestEntity>({ text1, text2, collection });
   }
 
   public static reconstruct(
@@ -40,60 +41,27 @@ export class TestEntity extends Entity<{
     text2: Text,
     text3?: Text,
     text4?: Text,
+    collection?: TestTextCollection,
   ) {
-    return TestEntity._reconstruct<TestEntity>({ text1, text2, text3, text4 });
-  }
-
-  public update({ text3, text4 }: { text3?: Text; text4?: Text }) {
-    return TestEntity._update<TestEntity>(this, { text3, text4 });
-  }
-
-  public equals(other: TestEntity): boolean {
-    return this.get('text1').equals(other.get('text1'));
-  }
-}
-
-// biome-ignore lint/suspicious/noExportsInTest:
-export class TestEntityWithEntity extends Entity<{
-  text: Text;
-  entity: EntityInstanceType<TestEntity>;
-}> {
-  protected constructor(props: {
-    text: Text;
-    entity: EntityInstanceType<TestEntity>;
-  }) {
-    super(props);
-  }
-
-  public static create(text: Text, entity: EntityInstanceType<TestEntity>) {
-    return TestEntityWithEntity._create<TestEntityWithEntity>({ text, entity });
-  }
-
-  public static reconstruct(
-    text: Text,
-    entity: EntityInstanceType<TestEntity>,
-  ) {
-    return TestEntityWithEntity._reconstruct<TestEntityWithEntity>({
-      text,
-      entity,
+    return TestEntity._reconstruct<TestEntity>({
+      text1,
+      text2,
+      text3,
+      text4,
+      collection,
     });
   }
 
   public update({
-    text,
-    entity,
-  }: { text?: Text; entity?: EntityInstanceType<TestEntity> }) {
-    return TestEntityWithEntity._update<TestEntityWithEntity>(this, {
-      text,
-      entity,
-    });
+    text3,
+    text4,
+    collection,
+  }: { text3?: Text; text4?: Text; collection?: TestTextCollection }) {
+    return TestEntity._update<TestEntity>(this, { text3, text4, collection });
   }
 
-  public equals(other: TestEntityWithEntity): boolean {
-    return (
-      this.get('text').equals(other.get('text')) &&
-      this.get('entity').equals(other.get('entity'))
-    );
+  public equals(other: TestEntity): boolean {
+    return this.get('text1').equals(other.get('text1'));
   }
 }
 
@@ -161,7 +129,11 @@ describe('Entity', () => {
     it('should throw error', () => {
       let error: ValidationException | undefined;
       try {
-        TestEntity.create(new TestText(1), new TestText(''));
+        TestEntity.create(
+          new TestText(1),
+          new TestText(''),
+          new TestTextCollection(new TestText(1), new TestText('abcdef')),
+        );
       } catch (e) {
         error = e as ValidationException;
       }
@@ -170,6 +142,7 @@ describe('Entity', () => {
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
         text2: ['値を指定してください'],
+        'collection[1]': ['5文字より短く入力してください'],
       });
     });
   });
@@ -182,6 +155,7 @@ describe('Entity', () => {
           new TestText(''),
           new TestText(1),
           new TestText('abcdef'),
+          new TestTextCollection(new TestText(1), new TestText('2')),
         ),
       ).not.toThrow();
     });
@@ -193,6 +167,10 @@ describe('Entity', () => {
         {
           text3: new TestText(1),
           text4: new TestText('abcde'),
+          collection: new TestTextCollection(
+            new TestText(1),
+            new TestText('2'),
+          ),
         },
       );
 
@@ -200,16 +178,27 @@ describe('Entity', () => {
       expect(test.get('text4')?.value).toBe('abcde');
       expect(test.text3?.value).toBe('1');
       expect(test.text4?.value).toBe('abcde');
+      expect(test.collection?.length).toBe(2);
+      expect(test.collection?.at(0)?.value).toBe('1');
+      expect(test.collection?.at(1)?.value).toBe('2');
     });
 
     it('should throw error', () => {
-      const test = TestEntity.create(new TestText(1), new TestText('1'));
+      const test = TestEntity.create(
+        new TestText(1),
+        new TestText('1'),
+        new TestTextCollection(new TestText(1), new TestText('2')),
+      );
 
       let error: ValidationException | undefined;
       try {
         test.update({
           text3: new TestText(1),
           text4: new TestText('abcdef'),
+          collection: new TestTextCollection(
+            new TestText(1),
+            new TestText('abcdef'),
+          ),
         });
       } catch (e) {
         error = e as ValidationException;
@@ -219,107 +208,7 @@ describe('Entity', () => {
       expect(error?.message).toBe('バリデーションエラーが発生しました');
       expect(error?.errors).toEqual({
         text4: ['5文字より短く入力してください'],
-      });
-    });
-  });
-
-  describe('Entity with Entity argument', () => {
-    it('should create entity with entity argument', () => {
-      const text = new TestText(1);
-      const entity = TestEntity.reconstruct(new TestText(1), new TestText('1'));
-      const result = TestEntityWithEntity.create(text, entity);
-
-      expect(result.get('text').value).toBe('1');
-      expect(result.get('entity').get('text1').value).toBe('1');
-      expect(result.get('entity').get('text2').value).toBe('1');
-      expect(result.get('entity').get('text3')?.value).toBeUndefined();
-      expect(result.get('entity').get('text4')?.value).toBeUndefined();
-      expect(result.text.value).toBe('1');
-      expect(result.entity.text1.value).toBe('1');
-      expect(result.entity.text2.value).toBe('1');
-      expect(result.entity.text3?.value).toBeUndefined();
-      expect(result.entity.text4?.value).toBeUndefined();
-    });
-
-    it('should reconstruct entity with entity argument', () => {
-      const text = new TestText(1);
-      const entity = TestEntity.reconstruct(
-        new TestText(1),
-        new TestText('1'),
-        new TestText(3),
-        new TestText(4),
-      );
-      const result = TestEntityWithEntity.reconstruct(text, entity);
-
-      expect(result.get('text').value).toBe('1');
-      expect(result.get('entity').get('text1').value).toBe('1');
-      expect(result.get('entity').get('text2').value).toBe('1');
-      expect(result.get('entity').get('text3')?.value).toBe('3');
-      expect(result.get('entity').get('text4')?.value).toBe('4');
-      expect(result.text.value).toBe('1');
-      expect(result.entity.text1.value).toBe('1');
-      expect(result.entity.text2.value).toBe('1');
-      expect(result.entity.text3?.value).toBe('3');
-      expect(result.entity.text4?.value).toBe('4');
-    });
-
-    it('should update entity with entity argument', () => {
-      const text = new TestText(1);
-      const entity = TestEntity.create(new TestText(1), new TestText('1'));
-      const test = TestEntityWithEntity.create(text, entity);
-
-      const newText = new TestText(2);
-      const newEntity = TestEntity.create(new TestText(2), new TestText('2'));
-      const result = test.update({ text: newText, entity: newEntity });
-
-      expect(result.get('text').value).toBe('2');
-      expect(result.get('entity').get('text1').value).toBe('2');
-      expect(result.get('entity').get('text2').value).toBe('2');
-      expect(result.get('entity').get('text3')?.value).toBeUndefined();
-      expect(result.get('entity').get('text4')?.value).toBeUndefined();
-      expect(result.text.value).toBe('2');
-      expect(result.entity.text1.value).toBe('2');
-      expect(result.entity.text2.value).toBe('2');
-      expect(result.entity.text3?.value).toBeUndefined();
-      expect(result.entity.text4?.value).toBeUndefined();
-    });
-
-    it('should validate nested entity errors', () => {
-      let error: ValidationException | undefined;
-      try {
-        TestEntityWithEntity.create(
-          new TestText(1),
-          TestEntity.reconstruct(new TestText(1), new TestText('')),
-        );
-      } catch (e) {
-        error = e as ValidationException;
-      }
-
-      expect(error).not.toBeUndefined();
-      expect(error?.message).toBe('バリデーションエラーが発生しました');
-      expect(error?.errors).toEqual({
-        'entity.text2': ['値を指定してください'],
-      });
-    });
-
-    it('should validate nested entity errors on update', () => {
-      const text = new TestText(1);
-      const entity = TestEntity.create(new TestText(1), new TestText('1'));
-      const test = TestEntityWithEntity.create(text, entity);
-
-      let error: ValidationException | undefined;
-      try {
-        test.update({
-          entity: TestEntity.reconstruct(new TestText(1), new TestText('')),
-        });
-      } catch (e) {
-        error = e as ValidationException;
-      }
-
-      expect(error).not.toBeUndefined();
-      expect(error?.message).toBe('バリデーションエラーが発生しました');
-      expect(error?.errors).toEqual({
-        'entity.text2': ['値を指定してください'],
+        'collection[1]': ['5文字より短く入力してください'],
       });
     });
   });
@@ -336,6 +225,7 @@ describe('getProps', () => {
     expect(props.text2).toBe(text2);
     expect(props.text3).toBeUndefined();
     expect(props.text4).toBeUndefined();
+    expect(props.collection).toBeUndefined();
   });
 
   it('should return properties including optional ones when provided', () => {
@@ -343,181 +233,42 @@ describe('getProps', () => {
     const text2 = new TestText('2');
     const text3 = new TestText(3);
     const text4 = new TestText('4');
-    const entity = TestEntity.reconstruct(text1, text2, text3, text4);
+    const collection = new TestTextCollection(
+      new TestText(1),
+      new TestText('2'),
+    );
+    const entity = TestEntity.reconstruct(
+      text1,
+      text2,
+      text3,
+      text4,
+      collection,
+    );
     const props = entity.getProps();
 
     expect(props.text1).toBe(text1);
     expect(props.text2).toBe(text2);
     expect(props.text3).toBe(text3);
     expect(props.text4).toBe(text4);
-  });
-
-  it('should return nested entity properties', () => {
-    const text = new TestText(1);
-    const nestedEntity = TestEntity.create(new TestText(2), new TestText('3'));
-    const entity = TestEntityWithEntity.create(text, nestedEntity);
-    const props = entity.getProps();
-
-    expect(props.text).toBe(text);
-    expect(props.entity.text1.value).toBe('2');
-    expect(props.entity.text2.value).toBe('3');
-    expect(props.entity.text3).toBeUndefined();
-    expect(props.entity.text4).toBeUndefined();
-  });
-
-  it("should return collection properties with each entity's props", () => {
-    // Create a test collection class
-    class TestCollection extends Collection<TestEntity> {}
-
-    // Create a test entity with collection class
-    class TestEntityWithCollection extends Entity<{
-      text1: Text;
-      text2: Text;
-      tests: TestCollection;
-    }> {
-      protected constructor(props: {
-        text1: Text;
-        text2: Text;
-        tests: TestCollection;
-      }) {
-        super(props);
-      }
-
-      public static create(
-        text1: Text,
-        text2: Text,
-        tests: TestCollection,
-      ): TestEntityWithCollection {
-        return TestEntityWithCollection._create<TestEntityWithCollection>({
-          text1,
-          text2,
-          tests,
-        });
-      }
-
-      public equals(other: TestEntityWithCollection): boolean {
-        return this.get('text1').equals(other.get('text1'));
-      }
-    }
-
-    // Create entities for the collection
-    const entity1 = TestEntity.create(new TestText(1), new TestText('2'));
-    const entity2 = TestEntity.create(new TestText(3), new TestText('4'));
-
-    // Create a test collection
-    const collection = new TestCollection(entity1, entity2);
-
-    // Create an entity with a collection property
-    const entityWithCollection = TestEntityWithCollection.create(
-      new TestText(5),
-      new TestText('6'),
-      collection,
-    );
-
-    const props = entityWithCollection.getProps();
-
-    expect(props.text1).toBe(entityWithCollection.get('text1'));
-    expect(props.text2).toBe(entityWithCollection.get('text2'));
-    expect(Array.isArray(props.tests)).toBe(true);
-    expect(props.tests.length).toBe(2);
-
-    // Check that each entity in the collection has its props returned
-    expect(props.tests[0]?.text1).toBe(entity1.get('text1'));
-    expect(props.tests[0]?.text2).toBe(entity1.get('text2'));
-    expect(props.tests[1]?.text1).toBe(entity2.get('text1'));
-    expect(props.tests[1]?.text2).toBe(entity2.get('text2'));
+    expect(props.collection?.length).toBe(2);
+    expect(props.collection?.at(0)?.value).toBe('1');
+    expect(props.collection?.at(1)?.value).toBe('2');
   });
 });
 
 describe('getObject', () => {
   it('should convert ValueObject properties to plain objects', () => {
-    const entity = TestEntity.create(new TestText(1), new TestText('2'));
+    const entity = TestEntity.create(
+      new TestText(1),
+      new TestText('2'),
+      new TestTextCollection(new TestText(3), new TestText('4')),
+    );
     const result = entity.getObject();
 
     expect(result).toEqual({
       text1: '1',
       text2: '2',
-    });
-  });
-
-  it('should convert Entity properties to plain objects', () => {
-    const text = new TestText(1);
-    const entity = TestEntity.create(new TestText(1), new TestText('2'));
-    const entityWithEntity = TestEntityWithEntity.create(text, entity);
-    const result = entityWithEntity.getObject();
-
-    expect(result).toEqual({
-      text: '1',
-      entity: {
-        text1: '1',
-        text2: '2',
-      },
-    });
-  });
-
-  it('should convert Collection properties to plain objects', () => {
-    // Create a test collection class
-    class TestCollection extends Collection<TestEntity> {}
-
-    // Create a test entity with collection class
-    class TestEntityWithCollection extends Entity<{
-      text1: Text;
-      text2: Text;
-      tests: TestCollection;
-    }> {
-      protected constructor(props: {
-        text1: Text;
-        text2: Text;
-        tests: TestCollection;
-      }) {
-        super(props);
-      }
-
-      public static create(
-        text1: Text,
-        text2: Text,
-        tests: TestCollection,
-      ): TestEntityWithCollection {
-        return TestEntityWithCollection._create<TestEntityWithCollection>({
-          text1,
-          text2,
-          tests,
-        });
-      }
-
-      public equals(other: TestEntityWithCollection): boolean {
-        return this.get('text1').equals(other.get('text1'));
-      }
-    }
-
-    // Create a test collection
-    const collection = new TestCollection(
-      TestEntity.create(new TestText(1), new TestText('2')),
-      TestEntity.create(new TestText(3), new TestText('4')),
-    );
-
-    // Create an entity with a collection property
-    const entityWithCollection = TestEntityWithCollection.create(
-      new TestText(5),
-      new TestText('6'),
-      collection,
-    );
-
-    const result = entityWithCollection.getObject();
-
-    expect(result).toEqual({
-      text1: '5',
-      text2: '6',
-      tests: [
-        {
-          text1: '1',
-          text2: '2',
-        },
-        {
-          text1: '3',
-          text2: '4',
-        },
-      ],
+      collection: ['3', '4'],
     });
   });
 
@@ -525,6 +276,7 @@ describe('getObject', () => {
     const entity = TestEntity.reconstruct(
       new TestText(1),
       new TestText('2'),
+      undefined,
       undefined,
       undefined,
     );
@@ -535,6 +287,7 @@ describe('getObject', () => {
       text2: '2',
       text3: undefined,
       text4: undefined,
+      collection: undefined,
     });
   });
 });

@@ -1,45 +1,36 @@
 import type { ValidationErrors } from '../exceptions/validation.js';
 import { ValidationException } from '../exceptions/validation.js';
+import { Collection } from '../valueObject/collection.js';
 import type { ValidationError } from '../valueObject/index.js';
 import { ValueObject } from '../valueObject/index.js';
-import { Collection } from './collection.js';
 
 type EntityPropType =
   // biome-ignore lint/suspicious/noExplicitAny:
-  | ValueObject<any, any>
-  | Entity
-  // biome-ignore lint/suspicious/noExplicitAny:
-  | Collection<any>
-  | undefined;
-type EntityTypes = { [key: string]: Readonly<EntityPropType> };
+  ValueObject<any, any> | Collection<ValueObject<any, any>> | undefined;
+type EntityPropsType = { [key: string]: Readonly<EntityPropType> };
 type InferProps<Instance extends Entity> = Instance extends Entity<infer Props>
   ? Props
   : never;
-type EntityPropsType<Props extends EntityTypes> = {
-  [key in keyof Props]: Props[key] extends Entity
-    ? InferProps<Props[key]>
-    : Props[key] extends Collection<infer E>
-      ? InferProps<E>[]
-      : Props[key];
+type EntityProps<Props extends EntityPropsType> = {
+  [key in keyof Props]: Props[key] extends Collection<infer V>
+    ? V[]
+    : Props[key];
 };
-type EntityObjectType<E extends Entity> = E extends Entity<infer Props>
+type EntityObject<E extends Entity> = E extends Entity<infer Props>
   ? {
       // biome-ignore lint/suspicious/noExplicitAny:
       [K in keyof Props]: Props[K] extends ValueObject<any, any>
         ? Props[K]['objectValue']
-        : Props[K] extends Entity
-          ? EntityObjectType<Props[K]>
-          : // biome-ignore lint/suspicious/noExplicitAny:
-            Props[K] extends Collection<any>
-            ? EntityObjectType<Props[K][number]>[]
-            : undefined;
+        : Props[K] extends Collection<infer V>
+          ? V['objectValue'][]
+          : undefined;
     }
   : never;
-export type EntityInstanceType<E extends Entity> = E & InferProps<E>;
+export type EntityInstance<E extends Entity> = E & InferProps<E>;
 
 // biome-ignore lint/suspicious/noExplicitAny:
-export abstract class Entity<Props extends EntityTypes = any> {
-  protected constructor(protected readonly props: Props) {
+export abstract class Entity<Props extends EntityPropsType = any> {
+  protected constructor(private readonly props: Props) {
     Object.freeze(this.props);
 
     // biome-ignore lint/correctness/noConstructorReturn:
@@ -47,7 +38,7 @@ export abstract class Entity<Props extends EntityTypes = any> {
       get(target, prop) {
         // Handle property access for props
         if (typeof prop === 'string' && prop in target.props) {
-          return target.get(prop as keyof Props);
+          return target.props[prop];
         }
 
         return Reflect.get(target, prop);
@@ -61,30 +52,30 @@ export abstract class Entity<Props extends EntityTypes = any> {
 
   protected static _create<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): EntityInstanceType<Instance> {
+  ): EntityInstance<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [props]) as Instance;
     instance.validate();
-    return instance as EntityInstanceType<Instance>;
+    return instance as EntityInstance<Instance>;
   }
 
   protected static _reconstruct<Instance extends Entity>(
     props: InferProps<Instance>,
-  ): EntityInstanceType<Instance> {
+  ): EntityInstance<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
-    return Reflect.construct(this, [props]) as EntityInstanceType<Instance>;
+    return Reflect.construct(this, [props]) as EntityInstance<Instance>;
   }
 
   protected static _update<Instance extends Entity>(
     target: Entity<InferProps<Instance>>,
     props: Partial<InferProps<Instance>>,
-  ): EntityInstanceType<Instance> {
+  ): EntityInstance<Instance> {
     // biome-ignore lint/complexity/noThisInStatic:
     const instance = Reflect.construct(this, [
       { ...target.props, ...props },
     ]) as Instance;
     instance.validate(target);
-    return instance as EntityInstanceType<Instance>;
+    return instance as EntityInstance<Instance>;
   }
 
   public abstract equals(other: Entity<Props>): boolean;
@@ -92,38 +83,40 @@ export abstract class Entity<Props extends EntityTypes = any> {
   public getErrors(prev?: Entity<Props>): ValidationErrors {
     return Object.keys(this.props).reduce((acc, key) => {
       const member = this.props[key];
-      const prevValue = prev
+      const prevValue: typeof member | undefined = prev
         ? // biome-ignore lint/suspicious/noExplicitAny:
           ((prev[key as keyof Entity] as any) ?? undefined)
         : undefined;
 
       if (member && member instanceof Collection) {
-        const errors: ValidationErrors | undefined =
-          member.getErrors(prevValue);
-        if (errors) {
-          return Object.entries(errors).reduce((acc, [key, value]) => {
-            acc[key] = [...new Set([...(acc[key] ?? []), ...value])];
+        const name = key.replace(/^_/, '');
+        const errors: ValidationError[] = member
+          .map((v, index) =>
+            v.getErrors(
+              `${name}[${index}]`,
+              // biome-ignore lint/suspicious/noExplicitAny:
+              (prevValue as Collection<ValueObject<any, any>>)?.find((p) =>
+                p.equals(v),
+              ),
+            ),
+          )
+          .filter((e): e is ValidationError[] => !!e)
+          .flat();
+        if (errors.length) {
+          return errors.reduce((acc, error) => {
+            acc[error.name] = [
+              ...new Set([...(acc[error.name] ?? []), error.error]),
+            ];
             return acc;
           }, acc);
         }
-      }
-
-      if (member && member instanceof Entity) {
-        const name = key.replace(/^_/, '');
-        const errors: ValidationErrors = member.getErrors(prevValue);
-        return Object.entries(errors).reduce((acc, [key, value]) => {
-          acc[`${name}.${key}`] = [
-            ...new Set([...(acc[`${name}.${key}`] ?? []), ...value]),
-          ];
-          return acc;
-        }, acc);
       }
 
       if (member && member instanceof ValueObject) {
         const name = key.replace(/^_/, '');
         const errors: ValidationError[] | undefined = member.getErrors(
           name,
-          prevValue,
+          prevValue as typeof member,
         );
         if (errors?.length) {
           return errors.reduce((acc, error) => {
@@ -147,31 +140,30 @@ export abstract class Entity<Props extends EntityTypes = any> {
     }
   }
 
-  public getProps(): EntityPropsType<Props> {
+  public getProps(): EntityProps<Props> {
     return Object.fromEntries(
       Object.entries(this.props).map(([key, value]) => {
         if (value instanceof Collection) {
-          return [key, value.map((v) => v.getProps())];
-        }
-
-        if (value instanceof Entity) {
-          return [key, value.getProps()];
+          // biome-ignore lint/suspicious/noExplicitAny:
+          return [key, value as Collection<ValueObject<any, any>>];
         }
 
         return [key, value];
       }),
-    ) as EntityPropsType<Props>;
+    ) as EntityProps<Props>;
   }
 
-  public getObject(): EntityObjectType<Entity<Props>> {
+  public getObject(): EntityObject<Entity<Props>> {
     return Object.fromEntries(
       Object.entries(this.props).map(([key, value]) => {
         if (value instanceof Collection) {
-          return [key, value.map((v) => v.getObject())];
-        }
-
-        if (value instanceof Entity) {
-          return [key, value.getObject()];
+          return [
+            key,
+            // biome-ignore lint/suspicious/noExplicitAny:
+            (value as Collection<ValueObject<any, any>>).map(
+              (v) => v.objectValue,
+            ),
+          ];
         }
 
         if (value instanceof ValueObject) {
@@ -180,6 +172,6 @@ export abstract class Entity<Props extends EntityTypes = any> {
 
         return [key, undefined];
       }),
-    ) as EntityObjectType<Entity<Props>>;
+    ) as EntityObject<Entity<Props>>;
   }
 }

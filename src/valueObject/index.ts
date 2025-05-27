@@ -54,7 +54,8 @@ export abstract class ValueObject<Input, Output, Inner = Output, O = Output> {
     return this.value as never;
   }
 
-  public equals(value: this): boolean {
+  public equals(value?: this | null): boolean {
+    if (value == null) return false;
     return this.compare(value) === 0;
   }
 
@@ -62,6 +63,6 @@ export abstract class ValueObject<Input, Output, Inner = Output, O = Output> {
 
   public abstract getErrors(
     name: string,
-    prev?: ValueObject<Input, Output, Inner>,
+    prev?: Readonly<ValueObject<Input, Output, Inner>>,
   ): ValidationError[] | undefined;
 }
